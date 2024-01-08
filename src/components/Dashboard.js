@@ -1,5 +1,11 @@
+import Header from "./Header";
+
 function Dashboard() {
-  return <div>Dashboard</div>;
+  return (
+    <div>
+      <Header />
+    </div>
+  );
 }
 
 export default Dashboard;

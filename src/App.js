@@ -49,21 +49,7 @@ function App() {
     };
   }, []);
 
-  return (
-    <div>
-      <h1 className="text-3xl font-bold underline">Hello world!</h1>
-      <button className="block" onClick={handleSignInWithGoogle}>
-        Sign In
-      </button>
-      <button className="block" onClick={handleSignOut}>
-        Sign Out
-      </button>
-      <p>{authUser ? `Signed In as ${authUser.email}` : "Signed Out"}</p>
-      {authUser && <p>{authUser.displayName}</p>}
-
-      {authUser ? <Dashboard /> : <SignIn />}
-    </div>
-  );
+  return <div>{authUser ? <Dashboard /> : <SignIn />}</div>;
 }
 
 export default App;
