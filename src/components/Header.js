@@ -4,13 +4,16 @@ import { faFire } from "@fortawesome/free-solid-svg-icons";
 
 function Header() {
   return (
-    <header className="sticky flex justify-between items-center w-full h-12 px-6 py-3">
+    <header className="sticky flex justify-between items-center w-full h-12 px-6 py-3 bg-white">
       <p className="text-3xl">
-        Flash<span className="font-bold">Fluent</span>
+        Flash<span className="font-bold text-primary-blue">Fluent</span>
       </p>
 
       <p className="hidden md:block">
-        Welcome back, {auth.currentUser.displayName}
+        Welcome back,{" "}
+        <span className="text-primary-blue">
+          {auth.currentUser.displayName}
+        </span>
       </p>
 
       <div className="flex space-x-2 justify-between items-center">

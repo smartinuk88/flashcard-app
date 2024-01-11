@@ -1,10 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  auth,
-  db,
-  handleSignInWithGoogle,
-  handleSignOut,
-} from "./firebase-config";
+import { auth, db } from "./firebase-config";
 import { serverTimestamp, doc, getDoc, setDoc } from "firebase/firestore";
 import Dashboard from "./components/Dashboard";
 import SignIn from "./components/SignIn";
@@ -30,6 +25,7 @@ function App() {
             img: user.photoURL,
             email: user.email,
             createdAt: serverTimestamp(),
+            lastCardReviewed: null,
             cardsReviewed: 0,
             reviewStreak: 0,
             deckProgress: {},

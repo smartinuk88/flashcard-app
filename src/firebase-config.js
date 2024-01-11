@@ -1,15 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp, getApps, getApp } from "firebase/app";
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  getDocs,
-  onSnapshot,
-  doc,
-  deleteDoc,
-  updateDoc,
-} from "firebase/firestore";
+import { getFirestore } from "firebase/firestore";
 import {
   getAuth,
   GoogleAuthProvider,
@@ -32,22 +23,6 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const db = getFirestore();
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
-
-// Add user with custom data
-// const createUserDocument = async (uid, data) => {
-//   const userRef = collection(db, "users").doc(uid);
-
-//   // Check if the user document already exists
-//   const userSnapshot = await userRef.get();
-
-//   if (!userSnapshot.exists) {
-//     // Create a new user document
-//     await userRef.set(data);
-//   } else {
-//     // Update the existing user document
-//     await userRef.update(data);
-//   }
-// };
 
 // Add deck
 // const addDeck = async (e) => {
