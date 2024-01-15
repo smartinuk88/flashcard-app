@@ -24,20 +24,6 @@ const db = getFirestore();
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-// Add deck
-// const addDeck = async (e) => {
-//   e.preventDefault();
-//   await addDoc(collection(db, "decks"), {
-//     collection: newCollection,
-//     createdBy: uid,
-//     description: newDescription,
-//     title: newTitle
-//   });
-//   setNewCollection("");
-//   setNewDescription("");
-//   setNewTitle("");
-// };
-
 const handleSignInWithGoogle = () => {
   signInWithPopup(auth, provider)
     .then((res) => {
