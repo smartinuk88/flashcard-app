@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { auth, db } from "./firebase-config";
 import { serverTimestamp, doc, getDoc, setDoc } from "firebase/firestore";
 import Dashboard from "./components/Dashboard";
 import SignIn from "./components/SignIn";
+import ErrorPage from "./components/ErrorPage";
 
 function App() {
   const [authUser, setAuthUser] = useState(null);
@@ -45,7 +47,19 @@ function App() {
     };
   }, []);
 
-  return <div>{authUser ? <Dashboard /> : <SignIn />}</div>;
+  const router = createBrowserRouter([
+    {
+      path: "/",
+      element: authUser ? <Dashboard /> : <SignIn />,
+      errorElement: <ErrorPage />,
+    },
+  ]);
+
+  return (
+    <>
+      <RouterProvider router={router} />
+    </>
+  );
 }
 
 export default App;
