@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import { auth, db } from "./firebase-config";
 import { serverTimestamp, doc, getDoc, setDoc } from "firebase/firestore";
-import Dashboard from "./components/Dashboard";
-import SignIn from "./components/SignIn";
-import ErrorPage from "./components/ErrorPage";
+import Dashboard from "./pages/Dashboard";
+import SignIn from "./pages/SignIn";
+import ErrorPage from "./pages/ErrorPage";
+import DeckDash from "./pages/DeckDash";
+import NotFound from "./pages/NotFound";
 
 function App() {
   const [authUser, setAuthUser] = useState(null);
@@ -19,7 +21,7 @@ function App() {
         const userSnap = await getDoc(userRef);
         if (userSnap.exists()) {
           // Update doc
-          console.log(userSnap.data());
+          // console.log(userSnap.data());
         } else {
           // Create doc
           const userData = {
@@ -47,18 +49,20 @@ function App() {
     };
   }, []);
 
-  const router = createBrowserRouter([
-    {
-      path: "/",
-      element: authUser ? <Dashboard /> : <SignIn />,
-      errorElement: <ErrorPage />,
-    },
-  ]);
-
   return (
-    <>
-      <RouterProvider router={router} />
-    </>
+    <Routes>
+      <Route
+        path="/"
+        element={authUser ? <Dashboard /> : <SignIn />}
+        errorElement={<ErrorPage />}
+      />
+      <Route
+        path="decks/:deckId"
+        element={<DeckDash />}
+        errorElement={<ErrorPage />}
+      />
+      <Route path="*" element={<NotFound />} errorElement={<NotFound />} />
+    </Routes>
   );
 }
 

@@ -10,6 +10,7 @@ function DeckList() {
 
   const decks = [
     {
+      id: 1,
       title: "1000 Most Common Spanish Words",
       description: "The absolute essential Spanish words",
       collection: [
@@ -24,6 +25,7 @@ function DeckList() {
       ],
     },
     {
+      id: 2,
       title: "House Vocab",
       description: "Important words for around the house",
       collection: [
@@ -127,17 +129,7 @@ function DeckList() {
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {decks.map((deck) => (
-          <Deck deck={deck} />
-        ))}
-        {/* Extra dummy decks for styling purposes */}
-        {decks.map((deck) => (
-          <Deck deck={deck} />
-        ))}
-        {decks.map((deck) => (
-          <Deck deck={deck} />
-        ))}
-        {decks.map((deck) => (
-          <Deck deck={deck} />
+          <Deck key={deck.id} deck={deck} />
         ))}
       </div>
     </div>

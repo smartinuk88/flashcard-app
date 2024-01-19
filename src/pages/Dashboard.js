@@ -1,7 +1,7 @@
-import DeckList from "./DeckList";
-import Footer from "./Footer";
-import Header from "./Header";
-import UserStats from "./UserStats";
+import DeckList from "../components/DeckList";
+import Footer from "../components/Footer";
+import Header from "../components/Header";
+import UserStats from "../components/UserStats";
 
 function Dashboard() {
   return (
