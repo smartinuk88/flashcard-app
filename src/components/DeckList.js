@@ -14,14 +14,22 @@ function DeckList() {
       title: "1000 Most Common Spanish Words",
       description: "The absolute essential Spanish words",
       collection: [
-        "Ver",
-        "Ir",
-        "Hola",
-        "Adios",
-        "Bien",
-        "Mal",
-        "Calor",
-        "Frío",
+        {
+          englishWord: "to see",
+          targetWord: "ver",
+        },
+        {
+          englishWord: "to go",
+          targetWord: "ir",
+        },
+        {
+          englishWord: "hello",
+          targetWord: "hola",
+        },
+        {
+          englishWord: "bye",
+          targetWord: "adiós",
+        },
       ],
     },
     {
@@ -29,14 +37,22 @@ function DeckList() {
       title: "House Vocab",
       description: "Important words for around the house",
       collection: [
-        "Taza",
-        "Aspirador",
-        "Salón",
-        "Cama",
-        "Baño",
-        "Nevera",
-        "Habitación",
-        "Cocina",
+        {
+          englishWord: "cup",
+          targetWord: "taza",
+        },
+        {
+          englishWord: "vaccuum",
+          targetWord: "aspirador",
+        },
+        {
+          englishWord: "living room",
+          targetWord: "salón",
+        },
+        {
+          englishWord: "bed",
+          targetWord: "cama",
+        },
       ],
     },
   ];

@@ -1,4 +1,4 @@
-import { useRouteError } from "react-router-dom";
+import { Link, useRouteError } from "react-router-dom";
 
 function ErrorPage() {
   const error = useRouteError();
@@ -11,9 +11,11 @@ function ErrorPage() {
           <i>{error.statusText || error.message}</i>
         </p>
       </div>
+      <Link to={"/"}>
       <p className="text-3xl">
         Flash<span className="font-bold text-primary-blue">Fluent</span>
       </p>
+      </Link>
     </div>
   );
 }
