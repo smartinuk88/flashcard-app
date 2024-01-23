@@ -129,13 +129,13 @@ function DeckList() {
         </div>
         <div className="flex space-x-2">
           <button
-            className="p-2 bg-secondary-blue text-center w-full rounded-full"
+            className="p-2 bg-green-600 text-center w-full rounded-full"
             onClick={addDeck}
           >
             Confirm
           </button>
           <button
-            className="p-2 bg-red-400 text-center border w-full rounded-full"
+            className="p-2 bg-red-600 text-center w-full rounded-full"
             onClick={cancelAddDeck}
           >
             Cancel

@@ -16,11 +16,7 @@ function DeckDash() {
       <main className="mx-auto h-full px-10 max-w-screen mt-4 mb-8">
         <h1 className="text-center text-4xl font-bold mb-1">{state.title}</h1>
         <p className="text-center text-xl">{state.description}</p>
-        <div className="relative flex items-center justify-center p-10">
-          <FontAwesomeIcon
-            className="absolute top-4 left-4 text-3xl"
-            icon={faPlus}
-          />
+        <div className="flex items-center justify-center p-10">
           <Flashcard flashcards={flashcards} />
         </div>
       </main>
