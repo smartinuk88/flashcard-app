@@ -1,61 +1,32 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Deck from "./Deck";
-import { addDoc, collection, deleteDoc, doc } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  onSnapshot,
+} from "firebase/firestore";
 import { auth, db } from "../firebase-config";
 
 function DeckList() {
+  const [decks, setDecks] = useState([]);
   const [addDeckMenuDisplay, setAddDeckMenuDisplay] = useState("none");
   const [newDeckTitle, setNewDeckTitle] = useState("");
   const [newDeckDescription, setNewDeckDescription] = useState("");
 
-  const decks = [
-    {
-      id: 1,
-      title: "1000 Most Common Spanish Words",
-      description: "The absolute essential Spanish words",
-      collection: [
-        {
-          englishWord: "to see",
-          targetWord: "ver",
-        },
-        {
-          englishWord: "to go",
-          targetWord: "ir",
-        },
-        {
-          englishWord: "hello",
-          targetWord: "hola",
-        },
-        {
-          englishWord: "bye",
-          targetWord: "adiós",
-        },
-      ],
-    },
-    {
-      id: 2,
-      title: "House Vocab",
-      description: "Important words for around the house",
-      collection: [
-        {
-          englishWord: "cup",
-          targetWord: "taza",
-        },
-        {
-          englishWord: "vaccuum",
-          targetWord: "aspirador",
-        },
-        {
-          englishWord: "living room",
-          targetWord: "salón",
-        },
-        {
-          englishWord: "bed",
-          targetWord: "cama",
-        },
-      ],
-    },
-  ];
+  useEffect(() => {
+    const ref = collection(db, "decks");
+    const getDecks = onSnapshot(ref, (snapshot) => {
+      let results = [];
+      snapshot.docs.map((doc) => {
+        results.push({ ...doc.data(), id: doc.id });
+      });
+      setDecks(results);
+    });
+
+    return () => getDecks();
+  }, []);
 
   const addDeck = async (e) => {
     e.preventDefault();
@@ -144,9 +115,7 @@ function DeckList() {
       </form>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {decks.map((deck) => (
-          <Deck key={deck.id} deck={deck} />
-        ))}
+        {decks && decks.map((deck) => <Deck key={deck.id} deck={deck} />)}
       </div>
     </div>
   );
