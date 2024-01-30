@@ -1,12 +1,6 @@
 import { useEffect, useState } from "react";
 import Deck from "./Deck";
-import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  onSnapshot,
-} from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../firebase-config";
 
 function DeckList() {
@@ -16,17 +10,39 @@ function DeckList() {
   const [newDeckDescription, setNewDeckDescription] = useState("");
 
   useEffect(() => {
-    const ref = collection(db, "decks");
-    const getDecks = onSnapshot(ref, (snapshot) => {
-      let results = [];
-      snapshot.docs.map((doc) => {
-        results.push({ ...doc.data(), id: doc.id });
-      });
-      setDecks(results);
-    });
+    async function getDecks() {
+      if (!auth.currentUser) return;
 
-    return () => getDecks();
-  }, []);
+      const userDocRef = doc(db, "users", auth.currentUser.uid);
+
+      try {
+        const docSnapshot = await getDoc(userDocRef);
+        if (docSnapshot.exists()) {
+          const userData = docSnapshot.data();
+          const deckRefs = userData.decks;
+
+          // Map each deck reference to a promise to get the document
+          const deckPromises = deckRefs.map((deckRef) => getDoc(deckRef));
+
+          // Resolve all promises to get the deck documents
+          const deckSnapshots = await Promise.all(deckPromises);
+
+          // Map over the snapshots to create an array of deck data
+          const userDecks = deckSnapshots.map((snap) => ({
+            id: snap.id,
+            ...snap.data(),
+          }));
+          console.log(userDecks);
+          setDecks(userDecks);
+        }
+      } catch (error) {
+        console.error("Error fetching decks:", error);
+        // Handle the error appropriately
+      }
+    }
+
+    getDecks();
+  }, [auth, db]);
 
   const addDeck = async (e) => {
     e.preventDefault();
