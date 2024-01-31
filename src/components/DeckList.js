@@ -1,6 +1,14 @@
 import { useEffect, useState } from "react";
 import Deck from "./Deck";
-import { addDoc, collection, deleteDoc, doc, getDoc } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  onSnapshot,
+  setDoc,
+} from "firebase/firestore";
 import { auth, db } from "../firebase-config";
 
 function DeckList() {
@@ -9,49 +17,49 @@ function DeckList() {
   const [newDeckTitle, setNewDeckTitle] = useState("");
   const [newDeckDescription, setNewDeckDescription] = useState("");
 
+  const userDocRef = doc(db, "users", auth.currentUser.uid);
+
   useEffect(() => {
-    async function getDecks() {
-      if (!auth.currentUser) return;
+    const unsubscribe = onSnapshot(userDocRef, async (docSnapshot) => {
+      if (docSnapshot.exists()) {
+        const userData = docSnapshot.data();
+        const deckRefs = userData.decks;
 
-      const userDocRef = doc(db, "users", auth.currentUser.uid);
+        // Map each deck reference to a promise to get the document
+        const deckPromises = deckRefs.map((deckRef) => getDoc(deckRef));
 
-      try {
-        const docSnapshot = await getDoc(userDocRef);
-        if (docSnapshot.exists()) {
-          const userData = docSnapshot.data();
-          const deckRefs = userData.decks;
+        // Resolve all promises to get the deck documents
+        const deckSnapshots = await Promise.all(deckPromises);
 
-          // Map each deck reference to a promise to get the document
-          const deckPromises = deckRefs.map((deckRef) => getDoc(deckRef));
+        // Map over the snapshots to create an array of deck data
+        const userDecks = deckSnapshots.map((snap) => ({
+          id: snap.id,
+          ...snap.data(),
+        }));
 
-          // Resolve all promises to get the deck documents
-          const deckSnapshots = await Promise.all(deckPromises);
-
-          // Map over the snapshots to create an array of deck data
-          const userDecks = deckSnapshots.map((snap) => ({
-            id: snap.id,
-            ...snap.data(),
-          }));
-          console.log(userDecks);
-          setDecks(userDecks);
-        }
-      } catch (error) {
-        console.error("Error fetching decks:", error);
-        // Handle the error appropriately
+        setDecks(userDecks);
       }
-    }
+    });
 
-    getDecks();
+    // Unsubscribe from the listener when the component unmounts
+    return () => unsubscribe();
   }, [auth, db]);
 
   const addDeck = async (e) => {
     e.preventDefault();
-    await addDoc(collection(db, "decks"), {
+    const newDeck = {
       collection: [],
       createdBy: auth.currentUser.displayName,
       description: newDeckDescription,
       title: newDeckTitle,
+    };
+
+    await addDoc(collection(db, "decks"), {
+      ...newDeck,
     });
+
+    // setDoc(userDocRef, {decks: })
+
     setNewDeckDescription("");
     setNewDeckTitle("");
   };

@@ -12,6 +12,7 @@ function App() {
   const [authUser, setAuthUser] = useState(null);
 
   useEffect(() => {
+    const defaultDeckId = "8ctacE6SGGPJsX8ADh6Q";
     const listen = auth.onAuthStateChanged(async (user) => {
       if (user) {
         // User is signed in
@@ -19,11 +20,19 @@ function App() {
         // Check if user doc already exists
         const userRef = doc(db, "users", user.uid);
         const userSnap = await getDoc(userRef);
-        if (userSnap.exists()) {
-          // Update doc
-          // console.log(userSnap.data());
-        } else {
-          // Create doc
+
+        if (!userSnap.exists()) {
+          // Fetch the default deck reference
+          const defaultDeckRef = doc(db, "decks", defaultDeckId);
+          const defaultDeckSnap = await getDoc(defaultDeckRef);
+
+          if (!defaultDeckSnap.exists()) {
+            console.error("Default deck does not exist");
+            // Handle the error appropriately
+            return;
+          }
+
+          // Create doc WITH default deck
           const userData = {
             displayName: user.displayName,
             img: user.photoURL,
@@ -33,6 +42,7 @@ function App() {
             cardsReviewed: 0,
             reviewStreak: 0,
             deckProgress: {},
+            decks: [defaultDeckRef],
           };
 
           await setDoc(doc(db, "users", user.uid), {
