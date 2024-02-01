@@ -11,31 +11,10 @@ import {
 } from "firebase/firestore";
 import { auth, db } from "../firebase-config";
 
-function DeckList() {
-  const [decks, setDecks] = useState([]);
+function DeckList({ decks }) {
   const [addDeckMenuDisplay, setAddDeckMenuDisplay] = useState("none");
   const [newDeckTitle, setNewDeckTitle] = useState("");
   const [newDeckDescription, setNewDeckDescription] = useState("");
-
-  useEffect(() => {
-    if (!auth.currentUser) return; // Check if the user is logged in
-
-    const userDocRef = doc(db, "users", auth.currentUser.uid);
-
-    const unsubscribe = onSnapshot(userDocRef, (docSnapshot) => {
-      if (docSnapshot.exists()) {
-        const userData = docSnapshot.data();
-        console.log(userData.decks);
-        userData.decks && setDecks(userData.decks);
-      } else {
-        // No user document exists
-        console.log("No such document!");
-      }
-    });
-
-    // Unsubscribe from the listener when the component unmounts
-    return () => unsubscribe();
-  }, [auth, db]);
 
   const addDeck = async (e) => {
     e.preventDefault();
@@ -131,7 +110,7 @@ function DeckList() {
       </form>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {decks && decks.map((deck) => <Deck key={deck.id} deck={deck} />)}
+        {decks && decks.map((deck, i) => <Deck key={i} deck={deck} />)}
       </div>
     </div>
   );
