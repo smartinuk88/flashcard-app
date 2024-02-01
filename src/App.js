@@ -7,12 +7,12 @@ import SignIn from "./pages/SignIn";
 import ErrorPage from "./pages/ErrorPage";
 import DeckDash from "./pages/DeckDash";
 import NotFound from "./pages/NotFound";
+import { defaultDeck } from "./helpers/DefaultDeck";
 
 function App() {
   const [authUser, setAuthUser] = useState(null);
 
   useEffect(() => {
-    const defaultDeckId = "8ctacE6SGGPJsX8ADh6Q";
     const listen = auth.onAuthStateChanged(async (user) => {
       if (user) {
         // User is signed in
@@ -22,16 +22,6 @@ function App() {
         const userSnap = await getDoc(userRef);
 
         if (!userSnap.exists()) {
-          // Fetch the default deck reference
-          const defaultDeckRef = doc(db, "decks", defaultDeckId);
-          const defaultDeckSnap = await getDoc(defaultDeckRef);
-
-          if (!defaultDeckSnap.exists()) {
-            console.error("Default deck does not exist");
-            // Handle the error appropriately
-            return;
-          }
-
           // Create doc WITH default deck
           const userData = {
             displayName: user.displayName,
@@ -41,8 +31,7 @@ function App() {
             lastCardReviewed: null,
             cardsReviewed: 0,
             reviewStreak: 0,
-            deckProgress: {},
-            decks: [defaultDeckRef],
+            decks: [defaultDeck],
           };
 
           await setDoc(doc(db, "users", user.uid), {

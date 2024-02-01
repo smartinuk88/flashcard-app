@@ -17,27 +17,19 @@ function DeckList() {
   const [newDeckTitle, setNewDeckTitle] = useState("");
   const [newDeckDescription, setNewDeckDescription] = useState("");
 
-  const userDocRef = doc(db, "users", auth.currentUser.uid);
-
   useEffect(() => {
-    const unsubscribe = onSnapshot(userDocRef, async (docSnapshot) => {
+    if (!auth.currentUser) return; // Check if the user is logged in
+
+    const userDocRef = doc(db, "users", auth.currentUser.uid);
+
+    const unsubscribe = onSnapshot(userDocRef, (docSnapshot) => {
       if (docSnapshot.exists()) {
         const userData = docSnapshot.data();
-        const deckRefs = userData.decks;
-
-        // Map each deck reference to a promise to get the document
-        const deckPromises = deckRefs.map((deckRef) => getDoc(deckRef));
-
-        // Resolve all promises to get the deck documents
-        const deckSnapshots = await Promise.all(deckPromises);
-
-        // Map over the snapshots to create an array of deck data
-        const userDecks = deckSnapshots.map((snap) => ({
-          id: snap.id,
-          ...snap.data(),
-        }));
-
-        setDecks(userDecks);
+        console.log(userData.decks);
+        userData.decks && setDecks(userData.decks);
+      } else {
+        // No user document exists
+        console.log("No such document!");
       }
     });
 
