@@ -1,5 +1,3 @@
-import { serverTimestamp } from "firebase/firestore";
-
 export const defaultDeck = {
   title: "50 Most Common Spanish Verbs",
   description:

@@ -1,15 +1,9 @@
-import { useEffect, useState } from "react";
 import DeckList from "../components/DeckList";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
 import UserStats from "../components/UserStats";
-import { doc, onSnapshot } from "firebase/firestore";
-import { auth, db } from "../firebase-config";
 
 function Dashboard() {
-  const [decks, setDecks] = useState([]);
-  const [userData, setUserData] = useState({});
-
   useEffect(() => {
     if (!auth.currentUser) return; // Check if the user is logged in
 
@@ -31,13 +25,12 @@ function Dashboard() {
     // Unsubscribe from the listener when the component unmounts
     return () => unsubscribe();
   }, [auth, db]);
-
   return (
     <div className="bg-white">
       <Header />
       <main className="mx-auto px-10 max-w-7xl mt-4 mb-8">
-        <UserStats userData={userData} />
-        <DeckList decks={decks} />
+        <UserStats />
+        {/* <DeckList /> */}
       </main>
       <Footer />
     </div>
