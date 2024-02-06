@@ -1,11 +1,9 @@
 import { useState } from "react";
 import Deck from "./Deck";
-import { updateDoc, doc, arrayUnion } from "firebase/firestore";
 import { useUser } from "../helpers/Context";
-import { db } from "../firebase-config";
 
 function DeckList() {
-  const { userData, authUser } = useUser();
+  const { userData, authUser, addDeckToUser } = useUser();
   const [addDeckMenuDisplay, setAddDeckMenuDisplay] = useState("none");
   const [newDeckTitle, setNewDeckTitle] = useState("");
   const [newDeckDescription, setNewDeckDescription] = useState("");
@@ -18,16 +16,7 @@ function DeckList() {
       title: newDeckTitle,
     };
 
-    const userDocRef = doc(db, "users", authUser.uid);
-
-    try {
-      await updateDoc(userDocRef, {
-        decks: arrayUnion(newDeck),
-      });
-      console.log("Deck added successfully");
-    } catch (error) {
-      console.error("Error adding deck: ", error);
-    }
+    addDeckToUser(newDeck);
 
     setNewDeckDescription("");
     setNewDeckTitle("");

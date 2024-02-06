@@ -1,6 +1,13 @@
 import { createContext, useState, useContext, useEffect } from "react";
 import { auth, db } from "../firebase-config";
-import { serverTimestamp, doc, getDoc, setDoc } from "firebase/firestore";
+import {
+  serverTimestamp,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  arrayUnion,
+} from "firebase/firestore";
 import { defaultDeck } from "./DefaultDeck";
 import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
 
@@ -81,6 +88,23 @@ export const UserProvider = ({ children }) => {
     }
   };
 
+  // Function to add a new deck to the user's decks array
+  const addDeckToUser = async (newDeck) => {
+    try {
+      const userRef = doc(db, "users", authUser.uid);
+      await updateDoc(userRef, {
+        decks: arrayUnion(newDeck),
+      });
+      // Update local state
+      setUserData((prevUserData) => ({
+        ...prevUserData,
+        decks: [...prevUserData.decks, newDeck],
+      }));
+    } catch (error) {
+      console.error("Error adding new deck:", error);
+    }
+  };
+
   return (
     <UserContext.Provider
       value={{
@@ -90,6 +114,7 @@ export const UserProvider = ({ children }) => {
         loading,
         handleSignInWithGoogle,
         handleSignOut,
+        addDeckToUser,
       }}
     >
       {children}
