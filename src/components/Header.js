@@ -1,12 +1,11 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { auth, handleSignOut } from "../firebase-config";
 import { faFire } from "@fortawesome/free-solid-svg-icons";
 import { Link } from "react-router-dom";
 import { useUser } from "../helpers/Context";
 
 function Header() {
-  const { userData } = useUser();
-  console.log(userData);
+  const { userData, handleSignOut } = useUser();
+
   return (
     <header className="sticky flex justify-between items-center w-full h-12 px-6 py-3 bg-white">
       <Link to={"/"}>

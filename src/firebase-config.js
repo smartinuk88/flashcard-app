@@ -24,24 +24,4 @@ const db = getFirestore();
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-const handleSignInWithGoogle = () => {
-  signInWithPopup(auth, provider)
-    .then((res) => {
-      console.log(res);
-    })
-    .catch((err) => {
-      console.error("Error signing in with Google", err.message);
-    });
-};
-
-const handleSignOut = () => {
-  signOut(auth)
-    .then(() => {
-      console.log("Sign out succesful");
-    })
-    .catch((err) => {
-      console.log("Sign out error: ", err);
-    });
-};
-
-export { app, db, auth, provider, handleSignInWithGoogle, handleSignOut };
+export { app, db, auth, provider };

@@ -1,17 +1,11 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Deck from "./Deck";
-import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  getDoc,
-  onSnapshot,
-  setDoc,
-} from "firebase/firestore";
-import { auth, db } from "../firebase-config";
+import { updateDoc, doc, arrayUnion } from "firebase/firestore";
+import { useUser } from "../helpers/Context";
+import { db } from "../firebase-config";
 
-function DeckList({ decks }) {
+function DeckList() {
+  const { userData, authUser } = useUser();
   const [addDeckMenuDisplay, setAddDeckMenuDisplay] = useState("none");
   const [newDeckTitle, setNewDeckTitle] = useState("");
   const [newDeckDescription, setNewDeckDescription] = useState("");
@@ -19,17 +13,21 @@ function DeckList({ decks }) {
   const addDeck = async (e) => {
     e.preventDefault();
     const newDeck = {
-      collection: [],
-      createdBy: auth.currentUser.displayName,
+      flashcards: [],
       description: newDeckDescription,
       title: newDeckTitle,
     };
 
-    await addDoc(collection(db, "decks"), {
-      ...newDeck,
-    });
+    const userDocRef = doc(db, "users", authUser.uid);
 
-    // setDoc(userDocRef, {decks: })
+    try {
+      await updateDoc(userDocRef, {
+        decks: arrayUnion(newDeck),
+      });
+      console.log("Deck added successfully");
+    } catch (error) {
+      console.error("Error adding deck: ", error);
+    }
 
     setNewDeckDescription("");
     setNewDeckTitle("");
@@ -48,10 +46,10 @@ function DeckList({ decks }) {
       : setAddDeckMenuDisplay("none");
   };
 
-  const deleteDeck = async (id) => {
-    const deckDoc = doc(db, "decks", id);
-    await deleteDoc(deckDoc);
-  };
+  // const deleteDeck = async (id) => {
+  //   const deckDoc = doc(db, "decks", id);
+  //   await deleteDoc(deckDoc);
+  // };
 
   return (
     <div>
@@ -110,7 +108,8 @@ function DeckList({ decks }) {
       </form>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {decks && decks.map((deck, i) => <Deck key={i} deck={deck} />)}
+        {userData.decks &&
+          userData.decks.map((deck, i) => <Deck key={i} deck={deck} />)}
       </div>
     </div>
   );
