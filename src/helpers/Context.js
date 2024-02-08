@@ -116,10 +116,14 @@ export const UserProvider = ({ children }) => {
     try {
       // Create new deck doc in user's decks collection
       const decksCollectionRef = collection(db, "users", authUser.uid, "decks");
-      await addDoc(decksCollectionRef, { ...newDeck });
+      const deckDocRef = await addDoc(decksCollectionRef, { ...newDeck });
+      const newDeckWithId = { ...newDeck, id: deckDocRef.id };
 
       // Update local state
-      setUserDeckData((prevUserDeckData) => [...prevUserDeckData, newDeck]);
+      setUserDeckData((prevUserDeckData) => [
+        ...prevUserDeckData,
+        newDeckWithId,
+      ]);
     } catch (error) {
       console.error("Error adding new deck:", error);
     }
