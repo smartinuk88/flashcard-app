@@ -7,6 +7,9 @@ import {
   setDoc,
   updateDoc,
   arrayUnion,
+  collection,
+  addDoc,
+  getDocs,
 } from "firebase/firestore";
 import { defaultDeck } from "./DefaultDeck";
 import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
@@ -18,15 +21,22 @@ export const useUser = () => useContext(UserContext);
 export const UserProvider = ({ children }) => {
   const [authUser, setAuthUser] = useState(null);
   const [userData, setUserData] = useState(null);
+  const [userDeckData, setUserDeckData] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Function to handle fetching or creating user document in Firestore
-  const fetchOrCreateUserDocument = async (user) => {
+  const fetchOrCreateUserDocuments = async (user) => {
     const userRef = doc(db, "users", user.uid);
     let userSnap = await getDoc(userRef);
+    const decksCollectionRef = collection(db, "users", user.uid, "decks");
+    let decksCollectionSnap = await getDocs(decksCollectionRef);
+    let userDecks = decksCollectionSnap.docs.map((decksnap) => ({
+      id: decksnap.id,
+      ...decksnap.data(),
+    }));
 
     if (!userSnap.exists()) {
-      // Create the document with default deck
+      // Create the user document without decks
       await setDoc(userRef, {
         displayName: user.displayName,
         img: user.photoURL,
@@ -35,12 +45,24 @@ export const UserProvider = ({ children }) => {
         lastCardReviewed: null,
         cardsReviewed: 0,
         reviewStreak: 0,
-        decks: [defaultDeck],
       });
-      userSnap = await getDoc(userRef); // Re-fetch the document after creating
+
+      // Create decks subcollection under user doc and initialise with default deck
+      const decksCollectionRef = collection(db, "users", user.uid, "decks");
+      await addDoc(decksCollectionRef, { ...defaultDeck });
+
+      // Re-fetch the user document and decks collection after creating
+      userSnap = await getDoc(userRef);
+      decksCollectionSnap = await getDocs(decksCollectionRef);
+      userDecks = decksCollectionSnap.docs.map((decksnap) => ({
+        id: decksnap.id,
+        ...decksnap.data(),
+      }));
     }
 
     setUserData(userSnap.data());
+    setUserDeckData(userDecks);
+    console.log(userDecks);
   };
 
   useEffect(() => {
@@ -49,10 +71,11 @@ export const UserProvider = ({ children }) => {
       if (user) {
         // User is signed in
         setAuthUser(user);
-        fetchOrCreateUserDocument(user);
+        fetchOrCreateUserDocuments(user);
       } else {
         setAuthUser({});
         setUserData({});
+        setUserDeckData([]);
       }
       setLoading(false);
     });
@@ -65,7 +88,6 @@ export const UserProvider = ({ children }) => {
     try {
       const result = await signInWithPopup(auth, provider);
       setAuthUser(result.user);
-      await fetchOrCreateUserDocument(result.user);
       console.log("Signed in with Google");
     } catch (err) {
       console.error("Error signing in with Google: ", err.message);
@@ -80,6 +102,7 @@ export const UserProvider = ({ children }) => {
       await signOut(auth); // Sign out from Firebase auth
       setAuthUser(null); // Update state to reflect that user is signed out
       setUserData(null);
+      setUserDeckData([]);
       console.log("Sign out successful");
     } catch (err) {
       console.error("Sign out error: ", err);
@@ -91,10 +114,16 @@ export const UserProvider = ({ children }) => {
   // Function to add a new deck to the user's decks array
   const addDeckToUser = async (newDeck) => {
     try {
+      // Create new deck doc in user's decks collection
+      const decksCollectionRef = collection(db, "users", authUser.uid, "decks");
+      const deckDocRef = await addDoc(decksCollectionRef, { ...newDeck });
+
+      // Update user doc with reference to new deck
       const userRef = doc(db, "users", authUser.uid);
       await updateDoc(userRef, {
-        decks: arrayUnion(newDeck),
+        decks: arrayUnion(db, `users/${authUser.uid}/decks/${deckDocRef.id}`),
       });
+
       // Update local state
       setUserData((prevUserData) => ({
         ...prevUserData,
@@ -111,6 +140,8 @@ export const UserProvider = ({ children }) => {
         authUser,
         userData,
         setUserData,
+        userDeckData,
+        setUserDeckData,
         loading,
         handleSignInWithGoogle,
         handleSignOut,

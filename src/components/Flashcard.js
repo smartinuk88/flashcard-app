@@ -14,12 +14,25 @@ function Flashcard({ flashcards }) {
   const handleFlip = () => {
     setFlipped((prev) => !prev);
   };
+
+  if (!flashcards.length) {
+    return (
+      <div className="relative flex flex-col justify-center items-center border border-primary-blue w-72 h-96 rounded-lg shadow-md text-2xl font-semibold transition duration-100 text-center">
+        <p>No flashcards added</p>
+        <div className="absolute flex flex-col justify-between items-center space-y-8 top-0 -left-16">
+          <FontAwesomeIcon icon={faPlus} />
+          <FontAwesomeIcon icon={faPenToSquare} />
+          <FontAwesomeIcon icon={faTrash} />
+        </div>
+      </div>
+    );
+  }
   return (
     <div
       onClick={handleFlip}
       className="relative flex flex-col justify-center items-center border border-primary-blue w-72 h-96 rounded-lg shadow-md cursor-pointer text-2xl font-semibold transition duration-100 text-center"
     >
-      <p>{!flipped ? flashcards[0].englishWord : flashcards[0].targetWord}</p>
+      <p>{!flipped ? flashcards[0].front : flashcards[0].back}</p>
       <div
         className={
           !flipped

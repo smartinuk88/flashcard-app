@@ -2,22 +2,20 @@ import { useLocation } from "react-router-dom";
 import Header from "../components/Header";
 import Flashcard from "../components/Flashcard";
 import Footer from "../components/Footer";
-import { useState } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus } from "@fortawesome/free-solid-svg-icons";
 
 function DeckDash() {
   const { state } = useLocation();
-  const [flashcards, setFlashcards] = useState(state.collection);
-  const [flipped, setFlipped] = useState(false);
+
   return (
     <div className="h-screen">
       <Header />
-      <main className="mx-auto h-full px-10 max-w-screen mt-4 mb-8">
-        <h1 className="text-center text-4xl font-bold mb-1">{state.title}</h1>
-        <p className="text-center text-xl">{state.description}</p>
+      <main className="mx-auto px-10 max-w-screen mt-4 mb-8">
+        <h1 className="text-center text-2xl md:text-4xl font-bold mb-1">
+          {state.title}
+        </h1>
+        <p className="text-center text-sm md:text-lg">{state.description}</p>
         <div className="flex items-center justify-center p-10">
-          <Flashcard flashcards={flashcards} />
+          <Flashcard flashcards={state.flashcards} />
         </div>
       </main>
       <Footer />

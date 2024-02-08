@@ -1,12 +1,31 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Deck from "./Deck";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../firebase-config";
 import { useUser } from "../helpers/Context";
 
 function DeckList() {
-  const { userData, authUser, addDeckToUser } = useUser();
+  const { userData, userDeckData, addDeckToUser } = useUser();
   const [addDeckMenuDisplay, setAddDeckMenuDisplay] = useState("none");
   const [newDeckTitle, setNewDeckTitle] = useState("");
   const [newDeckDescription, setNewDeckDescription] = useState("");
+
+  // useEffect(() => {
+  //   const fetchDecks = async () => {
+  //     const decksData = await Promise.all(
+  //       userData.decks.map((deckRef) =>
+  //         getDoc(deckRef).then((doc) => ({ id: doc.id, ...doc.data() }))
+  //       )
+  //     );
+  //     setDecks(decksData);
+  //     console.log(decksData);
+  //     console.log(userData.decks);
+  //   };
+
+  //   if (userData.decks) {
+  //     fetchDecks();
+  //   }
+  // }, [userData.decks]);
 
   const addDeck = async (e) => {
     e.preventDefault();
@@ -20,6 +39,7 @@ function DeckList() {
 
     setNewDeckDescription("");
     setNewDeckTitle("");
+    setAddDeckMenuDisplay("none");
   };
 
   const cancelAddDeck = (e) => {
@@ -97,8 +117,8 @@ function DeckList() {
       </form>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {userData.decks &&
-          userData.decks.map((deck, i) => <Deck key={i} deck={deck} />)}
+        {userDeckData &&
+          userDeckData.map((deck) => <Deck key={deck.id} deck={deck} />)}
       </div>
     </div>
   );
