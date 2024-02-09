@@ -35,10 +35,6 @@ function AddDeck() {
       : setAddDeckMenuDisplay("none");
   };
 
-  // const deleteDeck = async (id) => {
-  //   const deckDoc = doc(db, "decks", id);
-  //   await deleteDoc(deckDoc);
-  // };
   return (
     <div>
       <button

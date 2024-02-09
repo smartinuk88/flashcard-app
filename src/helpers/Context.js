@@ -10,6 +10,7 @@ import {
   collection,
   addDoc,
   getDocs,
+  deleteDoc,
 } from "firebase/firestore";
 import { defaultDeck } from "./DefaultDeck";
 import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
@@ -111,7 +112,7 @@ export const UserProvider = ({ children }) => {
     }
   };
 
-  // Function to add a new deck to the user's decks array
+  // Function to add a new deck to the user's decks collection
   const addDeckToUser = async (newDeck) => {
     try {
       // Create new deck doc in user's decks collection
@@ -129,6 +130,22 @@ export const UserProvider = ({ children }) => {
     }
   };
 
+  // Function to delete deck from user's decks collection and update local state
+  const deleteUserDeck = async (id) => {
+    try {
+      // Delete doc from firebase user's decks collection
+      const deckDocRef = doc(db, "users", authUser.uid, "decks", id);
+      await deleteDoc(deckDocRef);
+
+      // Update local state to remove the deleted deck
+      setUserDeckData((prevUserDeckData) =>
+        prevUserDeckData.filter((deck) => deck.id !== id)
+      );
+    } catch (error) {
+      console.error("Error deleting deck:", error);
+    }
+  };
+
   return (
     <UserContext.Provider
       value={{
@@ -141,6 +158,7 @@ export const UserProvider = ({ children }) => {
         handleSignInWithGoogle,
         handleSignOut,
         addDeckToUser,
+        deleteUserDeck,
       }}
     >
       {children}
