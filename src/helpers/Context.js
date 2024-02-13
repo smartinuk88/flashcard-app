@@ -146,6 +146,33 @@ export const UserProvider = ({ children }) => {
     }
   };
 
+  // Function to add a new deck to the user's decks collection
+  const addFlashcardToUserDeck = async (newFlashcard, deck) => {
+    try {
+      // Reference to specific user deck document
+      const deckDocRef = await doc(db, "users", authUser.uid, "decks", deck.id);
+
+      // Add the new flashcard to the 'flashcards' array in the deck document
+      await updateDoc(deckDocRef, {
+        flashcards: arrayUnion(newFlashcard),
+      });
+
+      // Update local state: Find the updated deck and add the new flashcard to its 'flashcards' array
+      setUserDeckData((prevUserDeckData) =>
+        prevUserDeckData.map((d) =>
+          d.id === deck.id
+            ? { ...d, flashcards: [...(d.flashcards || []), newFlashcard] }
+            : d
+        )
+      );
+
+      return { success: true }; // Indicate success
+    } catch (error) {
+      console.error("Error adding new flashcard:", error);
+      return { success: false, error: error.message }; // Indicate failure and include error message
+    }
+  };
+
   return (
     <UserContext.Provider
       value={{
@@ -159,6 +186,7 @@ export const UserProvider = ({ children }) => {
         handleSignOut,
         addDeckToUser,
         deleteUserDeck,
+        addFlashcardToUserDeck,
       }}
     >
       {children}
