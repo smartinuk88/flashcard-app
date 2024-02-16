@@ -1,29 +1,29 @@
 import { useState } from "react";
 import { useUser } from "../helpers/Context";
 
-function AddFlashCardModal({ deck, onToggleFlashcardModal }) {
-  const { addFlashcardToUserDeck } = useUser();
+function EditFlashcardModal({ deck, onToggleFlashcardModal, flashcard }) {
+  const { editFlashcardInUserDeck } = useUser();
 
-  const [cardFront, setCardFront] = useState("");
-  const [cardBack, setCardBack] = useState("");
+  const [cardFront, setCardFront] = useState(flashcard.front);
+  const [cardBack, setCardBack] = useState(flashcard.back);
   const [message, setMessage] = useState("");
 
-  const addFlashcard = async (e) => {
+  const editFlashcard = async (e) => {
     e.preventDefault();
-    const newFlashcard = {
-      id: deck.length,
+    const editedFlashcard = {
+      id: flashcard.id,
       front: cardFront,
       back: cardBack,
       lastReviewed: null,
-      strength: 0,
+      strength: flashcard.strength,
     };
 
-    const result = await addFlashcardToUserDeck(newFlashcard, deck);
+    const result = await editFlashcardInUserDeck(editedFlashcard, deck);
 
     if (result.success) {
-      setMessage("Flashcard added successfully!");
+      setMessage("Flashcard edited successfully!");
     } else {
-      setMessage(`Error adding flashcard: ${result.error}`);
+      setMessage(`Error editing flashcard: ${result.error}`);
     }
 
     setCardFront("");
@@ -38,7 +38,7 @@ function AddFlashCardModal({ deck, onToggleFlashcardModal }) {
   return (
     <div className="fixed inset-0 bg-primary-blue flex w-full justify-center items-center z-50">
       <div className="text-center bg-white p-10 h-4/5 rounded-lg shadow-lg w-4/5">
-        <h2 className="text-2xl font-bold mb-4">Add New Flashcard</h2>
+        <h2 className="text-2xl font-bold mb-4">Edit Flashcard</h2>
 
         <form>
           <div className="mb-6">
@@ -48,7 +48,6 @@ function AddFlashCardModal({ deck, onToggleFlashcardModal }) {
               required
               type="text"
               value={cardFront}
-              placeholder="Hola"
               onChange={(e) => setCardFront(e.target.value)}
             />
           </div>
@@ -59,7 +58,6 @@ function AddFlashCardModal({ deck, onToggleFlashcardModal }) {
               required
               type="text"
               value={cardBack}
-              placeholder="Hello"
               onChange={(e) => setCardBack(e.target.value)}
             />
           </div>
@@ -68,10 +66,10 @@ function AddFlashCardModal({ deck, onToggleFlashcardModal }) {
 
           <div className="flex justify-center space-x-4">
             <button
-              onClick={addFlashcard}
+              onClick={editFlashcard}
               className="mt-4 py-2 px-4 shadow-sm bg-green-500 text-white rounded hover:bg-green-700 transition duration-300 ease-in-out"
             >
-              Add Card
+              Edit Card
             </button>
             <button
               onClick={() => onToggleFlashcardModal(false)}
@@ -86,4 +84,4 @@ function AddFlashCardModal({ deck, onToggleFlashcardModal }) {
   );
 }
 
-export default AddFlashCardModal;
+export default EditFlashcardModal;

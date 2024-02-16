@@ -146,29 +146,109 @@ export const UserProvider = ({ children }) => {
     }
   };
 
-  // Function to add a new deck to the user's decks collection
+  // Function to add a new flashcard to the user's decks collection
   const addFlashcardToUserDeck = async (newFlashcard, deck) => {
     try {
-      // Reference to specific user deck document
-      const deckDocRef = await doc(db, "users", authUser.uid, "decks", deck.id);
+      const deckDocRef = doc(db, "users", authUser.uid, "decks", deck.id);
+      const docSnap = await getDoc(deckDocRef);
 
-      // Add the new flashcard to the 'flashcards' array in the deck document
+      if (docSnap.exists()) {
+        const deckData = docSnap.data();
+        // Ensure flashcards array exists and append new flashcard with updated id
+        const updatedFlashcards = [
+          ...(deckData.flashcards || []),
+          { ...newFlashcard, id: (deckData.flashcards || []).length },
+        ];
+
+        // Update the document with the new array
+        await updateDoc(deckDocRef, { flashcards: updatedFlashcards });
+
+        // Update local state similarly
+        setUserDeckData((prevUserDeckData) =>
+          prevUserDeckData.map((d) =>
+            d.id === deck.id ? { ...d, flashcards: updatedFlashcards } : d
+          )
+        );
+      }
+
+      return { success: true }; // Indicate success
+    } catch (error) {
+      console.error("Error adding new flashcard:", error);
+      return { success: false, error: error.message }; // Indicate failure and include error message
+    }
+  };
+
+  // Function to edit a flashcard in a user's decks collection
+  const editFlashcardInUserDeck = async (editedFlashcard, deck) => {
+    try {
+      // Reference to specific user deck document
+      const deckDocRef = doc(db, "users", authUser.uid, "decks", deck.id);
+
+      // Fetch the current state of the deck to access its flashcards
+      const docSnap = await getDoc(deckDocRef);
+      if (!docSnap.exists()) {
+        console.log("No such document!");
+        return { success: false, error: "Deck document does not exist" };
+      }
+      const currentDeck = docSnap.data();
+
+      // Replace the old flashcard with the new edited version
+      const updatedFlashcards = currentDeck.flashcards.map((flashcard) =>
+        flashcard.id === editedFlashcard.id ? editedFlashcard : flashcard
+      );
+
+      // Update the deck document with the new flashcards array
       await updateDoc(deckDocRef, {
-        flashcards: arrayUnion(newFlashcard),
+        flashcards: updatedFlashcards,
       });
 
-      // Update local state: Find the updated deck and add the new flashcard to its 'flashcards' array
+      // Update local state: Find the deck to update and add the new flashcard to its 'flashcards' array
       setUserDeckData((prevUserDeckData) =>
         prevUserDeckData.map((d) =>
-          d.id === deck.id
-            ? { ...d, flashcards: [...(d.flashcards || []), newFlashcard] }
-            : d
+          d.id === deck.id ? { ...d, flashcards: updatedFlashcards } : d
         )
       );
 
       return { success: true }; // Indicate success
     } catch (error) {
       console.error("Error adding new flashcard:", error);
+      return { success: false, error: error.message }; // Indicate failure and include error message
+    }
+  };
+
+  const deleteFlashcardInUserDeck = async (deck, id) => {
+    try {
+      // Reference to specific user deck document
+      const deckDocRef = doc(db, "users", authUser.uid, "decks", deck.id);
+
+      // Fetch the current state of the deck to access its flashcards
+      const docSnap = await getDoc(deckDocRef);
+      if (!docSnap.exists()) {
+        console.log("No such document!");
+        return { success: false, error: "Deck document does not exist" };
+      }
+      const currentDeck = docSnap.data();
+
+      // Filter out the deleted flashcard
+      const updatedFlashcards = currentDeck.flashcards.filter(
+        (flashcard) => flashcard.id !== id
+      );
+
+      // Update the deck document with the new flashcards array
+      await updateDoc(deckDocRef, {
+        flashcards: updatedFlashcards,
+      });
+
+      // Update local state: Find the updated deck and add the new flashcard to its 'flashcards' array
+      setUserDeckData((prevUserDeckData) =>
+        prevUserDeckData.map((d) =>
+          d.id === deck.id ? { ...d, flashcards: updatedFlashcards } : d
+        )
+      );
+
+      return { success: true };
+    } catch (error) {
+      console.error("Error deleting flashcard:", error);
       return { success: false, error: error.message }; // Indicate failure and include error message
     }
   };
@@ -187,6 +267,8 @@ export const UserProvider = ({ children }) => {
         addDeckToUser,
         deleteUserDeck,
         addFlashcardToUserDeck,
+        editFlashcardInUserDeck,
+        deleteFlashcardInUserDeck,
       }}
     >
       {children}

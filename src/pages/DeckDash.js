@@ -2,77 +2,108 @@ import { useLocation } from "react-router-dom";
 import Header from "../components/Header";
 import Flashcard from "../components/Flashcard";
 import Footer from "../components/Footer";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faPenToSquare,
-  faPlus,
-  faTrash,
-} from "@fortawesome/free-solid-svg-icons";
 import AddFlashCardModal from "../components/AddFlashCardModal";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import DeckEditButtons from "../components/DeckEditButtons";
+import EditFlashcardModal from "../components/EditFlashcardModal";
+import DeleteFlashcardModal from "../components/DeleteFlashcardModal";
+import { useUser } from "../helpers/Context";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "../firebase-config";
 
 function DeckDash() {
-  const { state } = useLocation();
+  const { state: deck } = useLocation();
+  const { loading, authUser, userData } = useUser();
+  const [deckData, setDeckData] = useState(deck);
   const [addFlashcardModal, setAddFlashcardModal] = useState(false);
+  const [editFlashcardModal, setEditFlashcardModal] = useState(false);
+  const [deleteFlashcardModal, setDeleteFlashcardModal] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    if (!deck?.id) return; // Ensure there's a deck ID to subscribe to
+
+    const deckDocRef = doc(db, "users", authUser.uid, "decks", deck.id);
+    const unsubscribe = onSnapshot(deckDocRef, (doc) => {
+      if (doc.exists()) {
+        setDeckData({ ...doc.data(), id: doc.id }); // Update local state with the latest deck data
+      } else {
+        // Handle the case where the document does not exist
+        console.log("No such document!");
+      }
+    });
+
+    return () => unsubscribe(); // Clean up the subscription
+  }, [deck?.id, db, authUser.uid]); // Re-subscribe when deck.id changes
 
   // Function to advance to the next flashcard
   const getNextFlashcard = () => {
     setCurrentIndex(
-      currentIndex < state.flashcards.length - 1 ? currentIndex + 1 : 0
+      currentIndex < deckData.flashcards.length - 1 ? currentIndex + 1 : 0
     );
   };
+
+  if (loading || !authUser || !userData) return null;
 
   return (
     <div className="h-screen">
       <Header />
       <main className="mx-auto px-10 max-w-screen mt-4 mb-8">
         <h1 className="text-center text-2xl md:text-4xl font-bold mb-1">
-          {state.title}
+          {deckData.title}
         </h1>
-        <p className="text-center text-sm md:text-lg">{state.description}</p>
+        <p className="text-center text-sm md:text-lg">{deckData.description}</p>
 
         {addFlashcardModal && (
           <AddFlashCardModal
-            deck={state}
+            deck={deckData}
             onToggleFlashcardModal={setAddFlashcardModal}
           />
         )}
 
+        {editFlashcardModal && (
+          <EditFlashcardModal
+            deck={deckData}
+            flashcard={deckData.flashcards[currentIndex]}
+            onToggleFlashcardModal={setEditFlashcardModal}
+          />
+        )}
+
+        {deleteFlashcardModal && (
+          <DeleteFlashcardModal
+            deck={deckData}
+            flashcard={deckData.flashcards[currentIndex]}
+            onToggleFlashcardModal={setDeleteFlashcardModal}
+          />
+        )}
+
         <div className="flex items-center justify-center p-10">
-          {!state.flashcards.length && (
+          {!deckData.flashcards.length && (
             <div className="relative flex flex-col justify-center items-center border border-primary-blue w-72 h-96 rounded-lg shadow-md text-2xl font-semibold transition duration-100 text-center">
               <p>No flashcards added</p>
             </div>
           )}
 
           <div className="relative">
-            {state.flashcards.length > 0 && (
+            {deckData.flashcards.length > 0 && (
               <Flashcard
-                flashcard={state.flashcards[currentIndex]}
+                flashcard={deckData.flashcards[currentIndex]}
                 onNext={getNextFlashcard}
               />
             )}
-            {state.flashcards.length > 1 &&
-              currentIndex < state.flashcards.length - 1 && (
+            {deckData.flashcards.length > 1 &&
+              currentIndex < deckData.flashcards.length - 1 && (
                 <Flashcard
-                  flashcard={state.flashcards[currentIndex + 1]}
+                  flashcard={deckData.flashcards[currentIndex + 1]}
                   isNextCard={true}
                 />
               )}
 
-            <div className="absolute flex flex-col justify-between items-center space-y-8 top-0 -left-10">
-              <FontAwesomeIcon
-                onClick={() => setAddFlashcardModal(true)}
-                className="cursor-pointer"
-                icon={faPlus}
-              />
-              <FontAwesomeIcon
-                className="cursor-pointer"
-                icon={faPenToSquare}
-              />
-              <FontAwesomeIcon className="cursor-pointer" icon={faTrash} />
-            </div>
+            <DeckEditButtons
+              onSetAddFlashcardModal={setAddFlashcardModal}
+              onSetEditFlashcardModal={setEditFlashcardModal}
+              onSetDeleteFlashcardModal={setDeleteFlashcardModal}
+            />
           </div>
         </div>
       </main>
