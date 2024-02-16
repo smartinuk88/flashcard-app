@@ -20,14 +20,18 @@ function Flashcard({ flashcard, onNext, isNextCard = false }) {
   };
 
   if (!flashcard) {
-    return null; // Just in case flashcard is undefined
+    return (
+      <div className="relative flex flex-col justify-center items-center mb-4 border border-primary-blue w-72 h-96 rounded-lg shadow-md text-2xl font-semibold transition duration-100 text-center">
+        <p>No flashcards added</p>
+      </div>
+    ); // Just in case flashcard is undefined
   }
 
   return (
     <div
       onClick={handleFlip}
-      className={`relative flex flex-col justify-center items-center border bg-white border-primary-blue w-72 h-96 rounded-lg shadow-md cursor-pointer text-2xl font-semibold transition duration-100 text-center ${
-        isNextCard ? "absolute -translate-y-full" : "z-10"
+      className={`flex flex-col justify-center items-center mb-4 border bg-white border-primary-blue w-72 h-96 rounded-lg shadow-md cursor-pointer text-2xl font-semibold transition duration-100 text-center ${
+        isNextCard ? "absolute top-0" : "relative z-10"
       }`}
     >
       <p>{!flipped || isNextCard ? flashcard.front : flashcard.back}</p>

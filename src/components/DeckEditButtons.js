@@ -9,24 +9,30 @@ function DeckEditButtons({
   onSetAddFlashcardModal,
   onSetEditFlashcardModal,
   onSetDeleteFlashcardModal,
+  flashcards,
 }) {
   return (
     <div className="absolute flex flex-col justify-between items-center space-y-8 top-0 -left-10">
       <FontAwesomeIcon
         onClick={() => onSetAddFlashcardModal(true)}
-        className="cursor-pointer"
+        className="cursor-pointer text-2xl"
         icon={faPlus}
       />
-      <FontAwesomeIcon
-        onClick={() => onSetEditFlashcardModal(true)}
-        className="cursor-pointer"
-        icon={faPenToSquare}
-      />
-      <FontAwesomeIcon
-        onClick={() => onSetDeleteFlashcardModal(true)}
-        className="cursor-pointer"
-        icon={faTrash}
-      />
+
+      {flashcards.length > 0 && (
+        <>
+          <FontAwesomeIcon
+            onClick={() => onSetEditFlashcardModal(true)}
+            className="cursor-pointer text-2xl"
+            icon={faPenToSquare}
+          />
+          <FontAwesomeIcon
+            onClick={() => onSetDeleteFlashcardModal(true)}
+            className="cursor-pointer text-2xl"
+            icon={faTrash}
+          />
+        </>
+      )}
     </div>
   );
 }

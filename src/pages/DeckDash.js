@@ -46,13 +46,17 @@ function DeckDash() {
   if (loading || !authUser || !userData) return null;
 
   return (
-    <div className="h-screen">
+    <>
       <Header />
-      <main className="mx-auto px-10 max-w-screen mt-4 mb-8">
-        <h1 className="text-center text-2xl md:text-4xl font-bold mb-1">
-          {deckData.title}
-        </h1>
-        <p className="text-center text-sm md:text-lg">{deckData.description}</p>
+      <main className="flex flex-col justify-between items-center h-[calc(100vh-92px)] p-10">
+        <div>
+          <h1 className="text-center text-2xl md:text-4xl font-bold mb-1">
+            {deckData.title}
+          </h1>
+          <p className="text-center text-sm md:text-lg">
+            {deckData.description}
+          </p>
+        </div>
 
         {addFlashcardModal && (
           <AddFlashCardModal
@@ -77,38 +81,30 @@ function DeckDash() {
           />
         )}
 
-        <div className="flex items-center justify-center p-10">
-          {!deckData.flashcards.length && (
-            <div className="relative flex flex-col justify-center items-center border border-primary-blue w-72 h-96 rounded-lg shadow-md text-2xl font-semibold transition duration-100 text-center">
-              <p>No flashcards added</p>
-            </div>
-          )}
+        <div className="relative flex flex-col items-center">
+          <Flashcard
+            flashcard={deckData.flashcards[currentIndex]}
+            onNext={getNextFlashcard}
+          />
 
-          <div className="relative">
-            {deckData.flashcards.length > 0 && (
+          <DeckEditButtons
+            onSetAddFlashcardModal={setAddFlashcardModal}
+            onSetEditFlashcardModal={setEditFlashcardModal}
+            onSetDeleteFlashcardModal={setDeleteFlashcardModal}
+            flashcards={deckData.flashcards}
+          />
+
+          {deckData.flashcards.length > 1 &&
+            currentIndex < deckData.flashcards.length - 1 && (
               <Flashcard
-                flashcard={deckData.flashcards[currentIndex]}
-                onNext={getNextFlashcard}
+                flashcard={deckData.flashcards[currentIndex + 1]}
+                isNextCard={true}
               />
             )}
-            {deckData.flashcards.length > 1 &&
-              currentIndex < deckData.flashcards.length - 1 && (
-                <Flashcard
-                  flashcard={deckData.flashcards[currentIndex + 1]}
-                  isNextCard={true}
-                />
-              )}
-
-            <DeckEditButtons
-              onSetAddFlashcardModal={setAddFlashcardModal}
-              onSetEditFlashcardModal={setEditFlashcardModal}
-              onSetDeleteFlashcardModal={setDeleteFlashcardModal}
-            />
-          </div>
         </div>
       </main>
       <Footer />
-    </div>
+    </>
   );
 }
 

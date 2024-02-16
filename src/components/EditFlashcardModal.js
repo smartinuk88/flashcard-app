@@ -32,7 +32,8 @@ function EditFlashcardModal({ deck, onToggleFlashcardModal, flashcard }) {
     // Clear the message after 3 seconds
     setTimeout(() => {
       setMessage("");
-    }, 3000);
+      onToggleFlashcardModal(false);
+    }, 1000);
   };
 
   return (
