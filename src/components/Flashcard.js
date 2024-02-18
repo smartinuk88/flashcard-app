@@ -1,8 +1,17 @@
 import { faCheck, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
+import { useUser } from "../helpers/Context";
 
 function Flashcard({ flashcard, onNext, isNextCard = false }) {
+  const { userData, setUserData } = useUser();
+
+  const [pendingUpdates, setPendingUpdates] = useState({
+    cardsReviewed: 0,
+    flashcardsStrength: {},
+    lastReviewTime: null,
+    reviewStreak: userData.reviewStreak,
+  });
   const [flipped, setFlipped] = useState(false);
 
   const handleFlip = () => {
@@ -11,11 +20,49 @@ function Flashcard({ flashcard, onNext, isNextCard = false }) {
     }
   };
 
-  const handleCorrect = () => {
-    onNext();
-  };
+  const handleReview = (isCorrect, flashcardId) => {
+    // Determine if the reviewStreak should be incremented or reset
+    const lastReviewDate = userData.lastCardReviewed
+      ? new Date(userData.lastCardReviewed.seconds * 1000)
+      : new Date();
+    const now = new Date();
+    const timeSinceLastReview = now - lastReviewDate;
+    const oneDay = 24 * 60 * 60 * 1000; // milliseconds in one day
 
-  const handleIncorrect = () => {
+    setUserData((prevUserData) => {
+      // Calculate the new streak
+      const newStreak =
+        timeSinceLastReview < oneDay ? prevUserData.reviewStreak + 1 : 1;
+
+      // Update and return the new user data object
+      return {
+        ...prevUserData,
+        reviewStreak: newStreak,
+        lastCardReviewed: now, // Update this if you want to show the last review time in the UI immediately as well
+      };
+    });
+
+    // Update local state
+    // Get new strength level of flashcard
+    const strengthChange = isCorrect ? 1 : -1;
+    const newStrength = Math.min(
+      Math.max(
+        (pendingUpdates.flashcardsStrength[flashcardId] || 0) + strengthChange,
+        0
+      ),
+      5
+    );
+
+    setPendingUpdates((prevState) => ({
+      ...prevState,
+      cardsReviewed: prevState.cardsReviewed + 1,
+      flashcardsStrength: {
+        ...prevState.flashcardsStrength,
+        [flashcardId]: newStrength,
+      },
+      lastReviewTime: lastReviewDate,
+    }));
+
     onNext();
   };
 
@@ -41,12 +88,12 @@ function Flashcard({ flashcard, onNext, isNextCard = false }) {
           <FontAwesomeIcon
             className="text-green-600 cursor-pointer"
             icon={faCheck}
-            onClick={onNext}
+            onClick={() => handleReview(true, flashcard.id)}
           />
           <FontAwesomeIcon
             className="text-red-600 cursor-pointer"
             icon={faXmark}
-            onClick={onNext}
+            onClick={() => handleReview(false, flashcard.id)}
           />
         </div>
       )}
