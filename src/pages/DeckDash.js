@@ -39,7 +39,7 @@ function DeckDash() {
   // Function to advance to the next flashcard
   const getNextFlashcard = () => {
     setCurrentIndex(
-      currentIndex < deckData.flashcards.length - 1 ? currentIndex + 1 : 0
+      currentIndex < deckData.flashcards.length - 1 ? currentIndex + 1 : -1
     );
   };
 
@@ -85,6 +85,9 @@ function DeckDash() {
           <Flashcard
             flashcard={deckData.flashcards[currentIndex]}
             onNext={getNextFlashcard}
+            currentIndex={currentIndex}
+            onCurrentIndexChange={setCurrentIndex}
+            deckId={deck}
           />
 
           <DeckEditButtons

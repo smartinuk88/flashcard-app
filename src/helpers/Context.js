@@ -6,11 +6,12 @@ import {
   getDoc,
   setDoc,
   updateDoc,
-  arrayUnion,
   collection,
   addDoc,
   getDocs,
   deleteDoc,
+  WriteBatch,
+  writeBatch,
 } from "firebase/firestore";
 import { defaultDeck } from "./DefaultDeck";
 import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
@@ -23,6 +24,11 @@ export const UserProvider = ({ children }) => {
   const [authUser, setAuthUser] = useState(null);
   const [userData, setUserData] = useState(null);
   const [userDeckData, setUserDeckData] = useState([]);
+  const [pendingUpdates, setPendingUpdates] = useState({
+    cardsReviewed: 0,
+    flashcardsStrength: {},
+    lastReviewTime: null,
+  });
   const [loading, setLoading] = useState(true);
 
   // Function to handle fetching or creating user document in Firestore
@@ -84,6 +90,34 @@ export const UserProvider = ({ children }) => {
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    // Define the function that checks the review streak
+    const checkReviewStreak = async () => {
+      const now = new Date();
+      const lastReviewDate = userData.lastCardReviewed
+        ? new Date(userData.lastCardReviewed.seconds * 1000)
+        : null;
+      const oneDay = 24 * 60 * 60 * 1000; // milliseconds in one day
+
+      if (lastReviewDate && now - lastReviewDate > oneDay) {
+        // If more than 24 hours have passed since the last review, reset streak
+        console.log(
+          "More than 24 hours have passed since last review. Resetting streak."
+        );
+        setUserData((prevUserData) => ({
+          ...prevUserData,
+          reviewStreak: 0,
+        }));
+      }
+    };
+
+    // Set up the interval to run the check every hour
+    const intervalId = setInterval(checkReviewStreak, 3600000); // 3600000 ms = 1 hour
+
+    // Cleanup function to clear the interval when the component unmounts
+    return () => clearInterval(intervalId);
+  }, [userData, authUser]); // Depend on userData and authUser to re-run the effect when they change
+
   const handleSignInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     try {
@@ -100,7 +134,8 @@ export const UserProvider = ({ children }) => {
   const handleSignOut = async () => {
     setLoading(true);
     try {
-      await signOut(auth); // Sign out from Firebase auth
+      await handleEndSession();
+      signOut(auth); // Sign out from Firebase auth
       setAuthUser(null); // Update state to reflect that user is signed out
       setUserData(null);
       setUserDeckData([]);
@@ -253,6 +288,42 @@ export const UserProvider = ({ children }) => {
     }
   };
 
+  const handleEndSession = async (newStreak) => {
+    try {
+      // Begin a batch to perform all updates together
+      const batch = writeBatch(db);
+
+      // Update user document with overall review stats
+      const userRef = doc(db, "users", authUser.uid);
+      batch.update(userRef, {
+        cardsReviewed: userData.cardsReviewed + pendingUpdates.cardsReviewed,
+        reviewStreak: userData.reviewStreak,
+        lastReviewed: pendingUpdates.lastReviewTime,
+      });
+
+      // Update each deck and flashcard strength within it
+      Object.keys(pendingUpdates.flashcardsStrength).forEach((deckId) => {
+        const deckRef = doc(db, "users", authUser.uid, "decks", deckId);
+        Object.entries(pendingUpdates.flashcardsStrength[deckId]).forEach(
+          ([flashcardId, strength]) => {
+            // Here you would have a sub-collection of flashcards under each deck
+            const flashcardRef = doc(deckRef, "flashcards", flashcardId);
+            batch.update(flashcardRef, {
+              strength: strength,
+            });
+          }
+        );
+      });
+
+      // Commit the batch
+      await batch.commit();
+      return { success: true }; // Indicate success
+    } catch (error) {
+      console.error("Error updating user session data:", error);
+      return { success: false, error: error.message }; // Indicate failure and include error message}
+    }
+  };
+
   return (
     <UserContext.Provider
       value={{
@@ -261,6 +332,8 @@ export const UserProvider = ({ children }) => {
         setUserData,
         userDeckData,
         setUserDeckData,
+        pendingUpdates,
+        setPendingUpdates,
         loading,
         handleSignInWithGoogle,
         handleSignOut,
@@ -269,6 +342,7 @@ export const UserProvider = ({ children }) => {
         addFlashcardToUserDeck,
         editFlashcardInUserDeck,
         deleteFlashcardInUserDeck,
+        handleEndSession,
       }}
     >
       {children}
