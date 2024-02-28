@@ -69,7 +69,6 @@ export const UserProvider = ({ children }) => {
 
     setUserData(userSnap.data());
     setUserDeckData(userDecks);
-    console.log(userDecks);
   };
 
   useEffect(() => {

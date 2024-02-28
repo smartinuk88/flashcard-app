@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
 import { useUser } from "../helpers/Context";
 import { Link } from "react-router-dom";
+import { Timestamp } from "firebase/firestore";
 
 function Flashcard({
   flashcard,
@@ -51,6 +52,7 @@ function Flashcard({
         ...prevUserData,
         reviewStreak: newStreak,
         cardsReviewed: prevUserData.cardsReviewed + 1,
+        lastCardReviewed: Timestamp.fromDate(now),
       };
     });
 
