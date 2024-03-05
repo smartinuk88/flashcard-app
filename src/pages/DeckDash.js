@@ -87,7 +87,7 @@ function DeckDash() {
             onNext={getNextFlashcard}
             currentIndex={currentIndex}
             onCurrentIndexChange={setCurrentIndex}
-            deckId={deck}
+            deckId={deck.id}
           />
 
           <DeckEditButtons

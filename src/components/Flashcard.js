@@ -28,11 +28,11 @@ function Flashcard({
     }
   };
 
-  const handleReview = (isCorrect, flashcardId) => {
+  const handleReview = (isCorrect, flashcardId, deckId) => {
     const now = new Date();
 
     const isNewDayReview = () => {
-      // Determine if the reviewStreak should be incremented or reset
+      // Determine if the reviewStreak should be incremented
       const lastReviewDate = userData.lastReviewed
         ? new Date(userData.lastReviewed.seconds * 1000)
         : null;
@@ -60,7 +60,7 @@ function Flashcard({
     // Calculate new strength level of the flashcard
     const strengthChange = isCorrect ? 1 : -1;
     const existingStrength =
-      pendingUpdates.flashcardsStrength[flashcardId] || 0;
+      pendingUpdates.flashcardsStrength[deckId]?.[flashcardId] ?? 0;
     const newStrength = Math.min(
       Math.max(existingStrength + strengthChange, 0),
       5
@@ -76,6 +76,8 @@ function Flashcard({
         },
       },
     }));
+
+    console.log(pendingUpdates);
 
     onNext();
   };
@@ -120,12 +122,12 @@ function Flashcard({
           <FontAwesomeIcon
             className="text-green-600 cursor-pointer"
             icon={faCheck}
-            onClick={() => handleReview(true, flashcard.id)}
+            onClick={() => handleReview(true, flashcard.id, deckId)}
           />
           <FontAwesomeIcon
             className="text-red-600 cursor-pointer"
             icon={faXmark}
-            onClick={() => handleReview(false, flashcard.id)}
+            onClick={() => handleReview(false, flashcard.id, deckId)}
           />
         </div>
       )}

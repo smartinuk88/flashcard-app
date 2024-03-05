@@ -305,19 +305,19 @@ export const UserProvider = ({ children }) => {
         const deckSnap = await getDoc(deckRef);
         if (deckSnap.exists()) {
           const deckData = deckSnap.data();
-          const updatedFlashcards = deckData.flashcards.map((flashcard) => {
-            if (
-              pendingUpdates.flashcardsStrength[deckId][flashcard.id] !==
-              undefined
-            ) {
-              return {
-                ...flashcard,
-                strength:
-                  pendingUpdates.flashcardsStrength[deckId][flashcard.id],
-              };
+          const updatedFlashcards = deckData.flashcards.map(
+            (flashcard, index) => {
+              if (
+                pendingUpdates.flashcardsStrength[deckId][index] !== undefined
+              ) {
+                return {
+                  ...flashcard,
+                  strength: pendingUpdates.flashcardsStrength[deckId][index],
+                };
+              }
+              return flashcard;
             }
-            return flashcard;
-          });
+          );
 
           batch.update(deckRef, { flashcards: updatedFlashcards });
         }
