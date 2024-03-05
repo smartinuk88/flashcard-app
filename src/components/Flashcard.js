@@ -29,21 +29,22 @@ function Flashcard({
   };
 
   const handleReview = (isCorrect, flashcardId) => {
-    // Determine if the reviewStreak should be incremented or reset
     const now = new Date();
-    const oneDay = 24 * 60 * 60 * 1000; // milliseconds in one day
-    const lastReviewDate = userData.lastCardReviewed
-      ? new Date(userData.lastCardReviewed.seconds * 1000)
-      : null;
 
-    // Check if the last review was more than 24 hours ago or on a different calendar day
-    const isNewDayReview =
-      !lastReviewDate ||
-      now - lastReviewDate >= oneDay ||
-      now.toDateString() !== lastReviewDate.toDateString();
+    const isNewDayReview = () => {
+      // Determine if the reviewStreak should be incremented or reset
+      const lastReviewDate = userData.lastReviewed
+        ? new Date(userData.lastReviewed.seconds * 1000)
+        : null;
+
+      // Check if today is different from the last review date (ignoring time)
+      return (
+        !lastReviewDate || now.toDateString() !== lastReviewDate.toDateString()
+      );
+    };
 
     setUserData((prevUserData) => {
-      const newStreak = isNewDayReview
+      const newStreak = isNewDayReview()
         ? prevUserData.reviewStreak + 1
         : prevUserData.reviewStreak;
 
@@ -52,7 +53,7 @@ function Flashcard({
         ...prevUserData,
         reviewStreak: newStreak,
         cardsReviewed: prevUserData.cardsReviewed + 1,
-        lastCardReviewed: Timestamp.fromDate(now),
+        lastReviewed: Timestamp.fromDate(now),
       };
     });
 
@@ -74,7 +75,6 @@ function Flashcard({
           [flashcardId]: newStrength,
         },
       },
-      lastCardReviewed: now,
     }));
 
     onNext();

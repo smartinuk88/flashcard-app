@@ -47,7 +47,7 @@ export const UserProvider = ({ children }) => {
         img: user.photoURL,
         email: user.email,
         createdAt: serverTimestamp(),
-        lastCardReviewed: null,
+        lastReviewed: null,
         cardsReviewed: 0,
         reviewStreak: 0,
       });
@@ -62,6 +62,7 @@ export const UserProvider = ({ children }) => {
       userDecks = decksCollectionSnap.docs.map((decksnap) => ({
         id: decksnap.id,
         ...decksnap.data(),
+        lastReviewed: decksnap.lastReviewed.toDate(),
       }));
     }
 
@@ -88,11 +89,11 @@ export const UserProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    // Define the function that checks the review streak
+    // Function to check if 24 hours have passed since last review
     const checkReviewStreak = async () => {
       const now = new Date();
-      const lastReviewDate = userData.lastCardReviewed
-        ? new Date(userData.lastCardReviewed.seconds * 1000)
+      const lastReviewDate = userData.lastReviewed
+        ? new Date(userData.lastReviewed.seconds * 1000)
         : null;
       const oneDay = 24 * 60 * 60 * 1000; // milliseconds in one day
 
@@ -295,7 +296,7 @@ export const UserProvider = ({ children }) => {
       batch.update(userRef, {
         cardsReviewed: userData.cardsReviewed,
         reviewStreak: userData.reviewStreak,
-        lastReviewed: pendingUpdates.lastReviewTime,
+        lastReviewed: userData.lastReviewed,
       });
 
       // For each deck, update the strengths of the flashcards
