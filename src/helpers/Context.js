@@ -10,7 +10,6 @@ import {
   addDoc,
   getDocs,
   deleteDoc,
-  WriteBatch,
   writeBatch,
 } from "firebase/firestore";
 import { defaultDeck } from "./DefaultDeck";
@@ -25,7 +24,6 @@ export const UserProvider = ({ children }) => {
   const [userData, setUserData] = useState(null);
   const [userDeckData, setUserDeckData] = useState([]);
   const [pendingUpdates, setPendingUpdates] = useState({
-    cardsReviewed: 0,
     flashcardsStrength: {},
     lastReviewTime: null,
   });
@@ -287,7 +285,7 @@ export const UserProvider = ({ children }) => {
     }
   };
 
-  const handleEndSession = async (newStreak) => {
+  const handleEndSession = async () => {
     try {
       // Begin a batch to perform all updates together
       const batch = writeBatch(db);
@@ -295,31 +293,48 @@ export const UserProvider = ({ children }) => {
       // Update user document with overall review stats
       const userRef = doc(db, "users", authUser.uid);
       batch.update(userRef, {
-        cardsReviewed: userData.cardsReviewed + pendingUpdates.cardsReviewed,
+        cardsReviewed: userData.cardsReviewed,
         reviewStreak: userData.reviewStreak,
         lastReviewed: pendingUpdates.lastReviewTime,
       });
 
-      // Update each deck and flashcard strength within it
-      Object.keys(pendingUpdates.flashcardsStrength).forEach((deckId) => {
+      // For each deck, update the strengths of the flashcards
+      for (const deckId of Object.keys(pendingUpdates.flashcardsStrength)) {
         const deckRef = doc(db, "users", authUser.uid, "decks", deckId);
-        Object.entries(pendingUpdates.flashcardsStrength[deckId]).forEach(
-          ([flashcardId, strength]) => {
-            // Here you would have a sub-collection of flashcards under each deck
-            const flashcardRef = doc(deckRef, "flashcards", flashcardId);
-            batch.update(flashcardRef, {
-              strength: strength,
-            });
-          }
-        );
-      });
+        const deckSnap = await getDoc(deckRef);
+        if (deckSnap.exists()) {
+          const deckData = deckSnap.data();
+          const updatedFlashcards = deckData.flashcards.map((flashcard) => {
+            if (
+              pendingUpdates.flashcardsStrength[deckId][flashcard.id] !==
+              undefined
+            ) {
+              return {
+                ...flashcard,
+                strength:
+                  pendingUpdates.flashcardsStrength[deckId][flashcard.id],
+              };
+            }
+            return flashcard;
+          });
+
+          batch.update(deckRef, { flashcards: updatedFlashcards });
+        }
+      }
 
       // Commit the batch
       await batch.commit();
+
+      // Reset pending updates
+      setPendingUpdates({
+        cardsReviewed: 0,
+        flashcardsStrength: {},
+        lastReviewTime: null,
+      });
       return { success: true }; // Indicate success
     } catch (error) {
       console.error("Error updating user session data:", error);
-      return { success: false, error: error.message }; // Indicate failure and include error message}
+      return { success: false, error: error.message }; // Indicate failure and include error message
     }
   };
 

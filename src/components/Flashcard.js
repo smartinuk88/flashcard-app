@@ -67,7 +67,6 @@ function Flashcard({
 
     setPendingUpdates((prevState) => ({
       ...prevState,
-      cardsReviewed: prevState.cardsReviewed + 1,
       flashcardsStrength: {
         ...prevState.flashcardsStrength,
         [deckId]: {
@@ -75,7 +74,7 @@ function Flashcard({
           [flashcardId]: newStrength,
         },
       },
-      lastReviewTime: now,
+      lastCardReviewed: now,
     }));
 
     onNext();
