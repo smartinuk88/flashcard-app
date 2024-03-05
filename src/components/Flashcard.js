@@ -60,24 +60,24 @@ function Flashcard({
     // Calculate new strength level of the flashcard
     const strengthChange = isCorrect ? 1 : -1;
     const existingStrength =
-      pendingUpdates.flashcardsStrength[deckId]?.[flashcardId] ?? 0;
-    const newStrength = Math.min(
-      Math.max(existingStrength + strengthChange, 0),
-      5
-    );
+      pendingUpdates.updatedFlashcards?.[deckId]?.[flashcardId]?.strength ?? 0;
+    let newStrength = existingStrength + strengthChange;
+    // Ensure newStrength is within limits of 0 and 5
+    newStrength = Math.max(0, Math.min(newStrength, 5));
 
     setPendingUpdates((prevState) => ({
       ...prevState,
-      flashcardsStrength: {
-        ...prevState.flashcardsStrength,
+      updatedFlashcards: {
+        ...prevState.updatedFlashcards,
         [deckId]: {
-          ...prevState.flashcardsStrength[deckId],
-          [flashcardId]: newStrength,
+          ...prevState.updatedFlashcards[deckId],
+          [flashcardId]: {
+            strength: newStrength,
+            lastReviewed: Timestamp.fromDate(now),
+          },
         },
       },
     }));
-
-    console.log(pendingUpdates);
 
     onNext();
   };

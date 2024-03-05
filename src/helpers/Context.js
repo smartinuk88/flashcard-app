@@ -24,8 +24,7 @@ export const UserProvider = ({ children }) => {
   const [userData, setUserData] = useState(null);
   const [userDeckData, setUserDeckData] = useState([]);
   const [pendingUpdates, setPendingUpdates] = useState({
-    flashcardsStrength: {},
-    lastReviewTime: null,
+    updatedFlashcards: {},
   });
   const [loading, setLoading] = useState(true);
 
@@ -300,24 +299,28 @@ export const UserProvider = ({ children }) => {
       });
 
       // For each deck, update the strengths of the flashcards
-      for (const deckId of Object.keys(pendingUpdates.flashcardsStrength)) {
+      for (const deckId of Object.keys(pendingUpdates.updatedFlashcards)) {
         const deckRef = doc(db, "users", authUser.uid, "decks", deckId);
         const deckSnap = await getDoc(deckRef);
         if (deckSnap.exists()) {
           const deckData = deckSnap.data();
-          const updatedFlashcards = deckData.flashcards.map(
-            (flashcard, index) => {
-              if (
-                pendingUpdates.flashcardsStrength[deckId][index] !== undefined
-              ) {
-                return {
-                  ...flashcard,
-                  strength: pendingUpdates.flashcardsStrength[deckId][index],
-                };
-              }
-              return flashcard;
+          const updatedFlashcards = deckData.flashcards.map((flashcard) => {
+            if (
+              pendingUpdates.updatedFlashcards[deckId][flashcard.id] !==
+              undefined
+            ) {
+              return {
+                ...flashcard,
+                strength:
+                  pendingUpdates.updatedFlashcards[deckId][flashcard.id]
+                    .strength,
+                lastReviewed:
+                  pendingUpdates.updatedFlashcards[deckId][flashcard.id]
+                    .lastReviewed,
+              };
             }
-          );
+            return flashcard;
+          });
 
           batch.update(deckRef, { flashcards: updatedFlashcards });
         }
