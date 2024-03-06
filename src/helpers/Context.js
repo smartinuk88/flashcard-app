@@ -23,9 +23,7 @@ export const UserProvider = ({ children }) => {
   const [authUser, setAuthUser] = useState(null);
   const [userData, setUserData] = useState(null);
   const [userDeckData, setUserDeckData] = useState([]);
-  const [pendingUpdates, setPendingUpdates] = useState({
-    updatedFlashcards: {},
-  });
+  const [pendingFlashcardUpdates, setPendingFlashcardUpdates] = useState({});
   const [loading, setLoading] = useState(true);
 
   // Function to handle fetching or creating user document in Firestore
@@ -61,7 +59,8 @@ export const UserProvider = ({ children }) => {
       userDecks = decksCollectionSnap.docs.map((decksnap) => ({
         id: decksnap.id,
         ...decksnap.data(),
-        lastReviewed: decksnap.lastReviewed.toDate(),
+        lastReviewed:
+          (decksnap.lastReviewed && decksnap.lastReviewed.toDate()) || null,
       }));
     }
 
@@ -298,30 +297,33 @@ export const UserProvider = ({ children }) => {
         lastReviewed: userData.lastReviewed,
       });
 
-      // For each deck, update the strengths of the flashcards
-      for (const deckId of Object.keys(pendingUpdates.updatedFlashcards)) {
+      for (const [deckId, flashcardsUpdates] of Object.entries(
+        pendingFlashcardUpdates
+      )) {
         const deckRef = doc(db, "users", authUser.uid, "decks", deckId);
         const deckSnap = await getDoc(deckRef);
+
         if (deckSnap.exists()) {
           const deckData = deckSnap.data();
-          const updatedFlashcards = deckData.flashcards.map((flashcard) => {
-            if (
-              pendingUpdates.updatedFlashcards[deckId][flashcard.id] !==
-              undefined
-            ) {
-              return {
-                ...flashcard,
-                strength:
-                  pendingUpdates.updatedFlashcards[deckId][flashcard.id]
-                    .strength,
-                lastReviewed:
-                  pendingUpdates.updatedFlashcards[deckId][flashcard.id]
-                    .lastReviewed,
+          // Clone the existing flashcards array from the snapshot data
+          let updatedFlashcards = [...deckData.flashcards];
+
+          // Update each flashcard in the cloned array based on the pending updates
+          for (const [flashcardId, updateData] of Object.entries(
+            flashcardsUpdates
+          )) {
+            const index = updatedFlashcards.findIndex(
+              (f) => f.id === Number(flashcardId)
+            );
+            if (index !== -1) {
+              updatedFlashcards[index] = {
+                ...updatedFlashcards[index],
+                ...updateData,
               };
             }
-            return flashcard;
-          });
+          }
 
+          // Set the updated array back to the deck document
           batch.update(deckRef, { flashcards: updatedFlashcards });
         }
       }
@@ -330,11 +332,7 @@ export const UserProvider = ({ children }) => {
       await batch.commit();
 
       // Reset pending updates
-      setPendingUpdates({
-        cardsReviewed: 0,
-        flashcardsStrength: {},
-        lastReviewTime: null,
-      });
+      setPendingFlashcardUpdates({});
       return { success: true }; // Indicate success
     } catch (error) {
       console.error("Error updating user session data:", error);
@@ -350,8 +348,8 @@ export const UserProvider = ({ children }) => {
         setUserData,
         userDeckData,
         setUserDeckData,
-        pendingUpdates,
-        setPendingUpdates,
+        pendingFlashcardUpdates,
+        setPendingFlashcardUpdates,
         loading,
         handleSignInWithGoogle,
         handleSignOut,

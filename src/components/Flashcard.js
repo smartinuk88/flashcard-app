@@ -16,9 +16,8 @@ function Flashcard({
   const {
     userData,
     setUserData,
-    pendingUpdates,
-    setPendingUpdates,
-    handleEndSession,
+    pendingFlashcardUpdates,
+    setPendingFlashcardUpdates,
   } = useUser();
   const [flipped, setFlipped] = useState(false);
 
@@ -60,24 +59,35 @@ function Flashcard({
     // Calculate new strength level of the flashcard
     const strengthChange = isCorrect ? 1 : -1;
     const existingStrength =
-      pendingUpdates.updatedFlashcards?.[deckId]?.[flashcardId]?.strength ?? 0;
+      pendingFlashcardUpdates?.[deckId]?.[flashcardId]?.strength ?? 0;
     let newStrength = existingStrength + strengthChange;
     // Ensure newStrength is within limits of 0 and 5
     newStrength = Math.max(0, Math.min(newStrength, 5));
 
-    setPendingUpdates((prevState) => ({
-      ...prevState,
-      updatedFlashcards: {
-        ...prevState.updatedFlashcards,
+    setPendingFlashcardUpdates((prevState) => {
+      const deckUpdates = prevState[deckId] || {};
+      const flashcardUpdates = deckUpdates[flashcardId] || {
+        strength: 0,
+        lastReviewed: now,
+      };
+
+      // Calculate new strength ensuring it's within 0-5 range
+      const newStrength = Math.max(
+        0,
+        Math.min(flashcardUpdates.strength + strengthChange, 5)
+      );
+
+      return {
+        ...prevState,
         [deckId]: {
-          ...prevState.updatedFlashcards[deckId],
+          ...deckUpdates,
           [flashcardId]: {
             strength: newStrength,
-            lastReviewed: Timestamp.fromDate(now),
+            lastReviewed: now,
           },
         },
-      },
-    }));
+      };
+    });
 
     onNext();
   };
