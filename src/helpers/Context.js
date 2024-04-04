@@ -34,6 +34,7 @@ export const UserProvider = ({ children }) => {
   const [pendingFlashcardUpdates, setPendingFlashcardUpdates] = useState({});
   const [loading, setLoading] = useState(true);
   const [streakLostMessage, setStreakLostMessage] = useState("");
+  const [dataSyncMessage, setDataSyncMessage] = useState({});
 
   // Function to handle fetching or creating user document in Firestore
   const fetchOrCreateUserDocuments = async (user) => {
@@ -283,9 +284,25 @@ export const UserProvider = ({ children }) => {
 
           // Clear local storage
           localStorage.removeItem("pendingUpdates");
+
+          // setDataSyncMessage
+          setDataSyncMessage({
+            success: true,
+            message: "Data synced successfully",
+          });
+          setTimeout(() => {
+            setDataSyncMessage({});
+          }, 3000);
           return { success: true }; // Indicate success
         } catch (error) {
           console.error("Error updating user session data:", error);
+          setDataSyncMessage({
+            success: false,
+            message: `Error syncing data: ${error.message}`,
+          });
+          setTimeout(() => {
+            setDataSyncMessage({});
+          }, 3000);
           return { success: false, error: error.message }; // Indicate failure and include error message
         }
       } else {
@@ -495,6 +512,7 @@ export const UserProvider = ({ children }) => {
         deleteFlashcardInUserDeck,
         handleFirebaseUpdate,
         streakLostMessage,
+        dataSyncMessage,
       }}
     >
       {children}

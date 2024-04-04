@@ -4,7 +4,8 @@ import { Link } from "react-router-dom";
 import { useUser } from "../helpers/Context";
 
 function Header() {
-  const { userData, handleSignOut, streakLostMessage } = useUser();
+  const { userData, handleSignOut, streakLostMessage, dataSyncMessage } =
+    useUser();
 
   return (
     <header className="sticky w-full h-14 bg-white">
@@ -34,6 +35,13 @@ function Header() {
       </div>
       <p className="text-center font-semibold bg-red-500 text-white">
         {streakLostMessage}
+      </p>
+      <p
+        className={`text-center font-semibold text-white ${
+          dataSyncMessage.success ? "bg-green-500" : "bg-red-500"
+        }`}
+      >
+        {dataSyncMessage.message}
       </p>
     </header>
   );
