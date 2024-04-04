@@ -45,14 +45,25 @@ function Flashcard({
 
       const isNewDayReview = () => {
         // Determine if the reviewStreak should be incremented
-        const lastReviewDate = userData.lastReviewed
-          ? new Date(userData.lastReviewed)
-          : null;
+        let lastReviewDate = userData.lastReviewed;
+
+        if (lastReviewDate) {
+          // If lastReviewed is a Firestore Timestamp, convert it to a Date object
+          if (lastReviewDate.toDate) {
+            lastReviewDate = lastReviewDate.toDate();
+          } else if (typeof lastReviewDate === "string") {
+            // If lastReviewed is an ISO string, parse it to a Date object
+            lastReviewDate = new Date(lastReviewDate);
+          }
+        } else {
+          lastReviewDate = null;
+        }
 
         // Check if today is different from the last review date (ignoring time)
         return (
           !lastReviewDate ||
-          now.toDateString() !== lastReviewDate.toDateString()
+          now.toDateString() !== lastReviewDate.toDateString() ||
+          userData.reviewStreak === 0
         );
       };
 

@@ -4,9 +4,8 @@ import SignIn from "./pages/SignIn";
 import ErrorPage from "./pages/ErrorPage";
 import DeckDash from "./pages/DeckDash";
 import NotFound from "./pages/NotFound";
-import { UserProvider, useUser } from "./helpers/Context";
+import { UserProvider } from "./helpers/Context";
 import PrivateRoute from "./components/PrivateRoute";
-import AutosaveComponent from "./components/AutosaveComponent";
 
 function App() {
   return (

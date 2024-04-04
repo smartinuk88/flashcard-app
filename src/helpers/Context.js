@@ -33,6 +33,7 @@ export const UserProvider = ({ children }) => {
   const [userDeckData, setUserDeckData] = useState([]);
   const [pendingFlashcardUpdates, setPendingFlashcardUpdates] = useState({});
   const [loading, setLoading] = useState(true);
+  const [streakLostMessage, setStreakLostMessage] = useState("");
 
   // Function to handle fetching or creating user document in Firestore
   const fetchOrCreateUserDocuments = async (user) => {
@@ -134,12 +135,25 @@ export const UserProvider = ({ children }) => {
     // Function to check if 24 hours have passed since last review
     const checkReviewStreak = async () => {
       const now = new Date();
-      const lastReviewDate = userData.lastReviewed
-        ? new Date(userData.lastReviewed.seconds * 1000)
-        : null;
+      let lastReviewDate = userData?.lastReviewed;
+      if (lastReviewDate) {
+        // If lastReviewed is a Firestore Timestamp, convert it to a Date object
+        if (lastReviewDate.toDate) {
+          lastReviewDate = lastReviewDate.toDate();
+        } else if (typeof lastReviewDate === "string") {
+          // If lastReviewed is an ISO string, parse it to a Date object
+          lastReviewDate = new Date(lastReviewDate);
+        }
+      } else {
+        lastReviewDate = null;
+      }
       const oneDay = 24 * 60 * 60 * 1000; // milliseconds in one day
 
-      if (lastReviewDate && now - lastReviewDate > oneDay) {
+      if (
+        userData.reviewStreak !== 0 &&
+        lastReviewDate &&
+        now - lastReviewDate > oneDay
+      ) {
         // If more than 24 hours have passed since the last review, reset streak
         console.log(
           "More than 24 hours have passed since last review. Resetting streak."
@@ -148,6 +162,12 @@ export const UserProvider = ({ children }) => {
           ...prevUserData,
           reviewStreak: 0,
         }));
+        setStreakLostMessage(
+          "You have lost your streak, but it is never too late to start again!"
+        );
+        setTimeout(() => {
+          setStreakLostMessage("");
+        }, 3000);
       }
     };
 
@@ -156,7 +176,7 @@ export const UserProvider = ({ children }) => {
 
     // Cleanup function to clear the interval when the component unmounts
     return () => clearInterval(intervalId);
-  }, [userData, authUser]); // Depend on userData and authUser to re-run the effect when they change
+  }, [userData]); // Depend on userData to re-run the effect when they change
 
   // Store the pending updates in a ref so that it doesn't trigger effects
   const pendingUpdatesRef = useRef(pendingFlashcardUpdates);
@@ -474,6 +494,7 @@ export const UserProvider = ({ children }) => {
         editFlashcardInUserDeck,
         deleteFlashcardInUserDeck,
         handleFirebaseUpdate,
+        streakLostMessage,
       }}
     >
       {children}
