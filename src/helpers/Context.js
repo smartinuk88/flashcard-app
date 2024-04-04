@@ -1,4 +1,11 @@
-import { createContext, useState, useContext, useEffect } from "react";
+import {
+  createContext,
+  useState,
+  useContext,
+  useEffect,
+  useCallback,
+  useRef,
+} from "react";
 import { auth, db } from "../firebase-config";
 import {
   serverTimestamp,
@@ -11,6 +18,7 @@ import {
   getDocs,
   deleteDoc,
   writeBatch,
+  Timestamp,
 } from "firebase/firestore";
 import { defaultDeck } from "./DefaultDeck";
 import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
@@ -74,7 +82,38 @@ export const UserProvider = ({ children }) => {
       if (user) {
         // User is signed in
         setAuthUser(user);
-        fetchOrCreateUserDocuments(user);
+
+        const handleLocalStorageUpdates = async () => {
+          const pendingUpdatesString = localStorage.getItem("pendingUpdates");
+          if (pendingUpdatesString) {
+            try {
+              const pendingUpdates = JSON.parse(pendingUpdatesString);
+              // Ensure that there are actually updates to process
+              if (pendingUpdates && Object.keys(pendingUpdates).length > 0) {
+                console.log(
+                  "Found pending updates in local storage, updating Firebase..."
+                );
+                // Call handleFirebaseUpdate with the pending updates
+                const updateResult = await handleFirebaseUpdate(
+                  pendingUpdates.flashcardUpdates,
+                  pendingUpdates.userData
+                );
+                if (updateResult.success) {
+                  // Clear local storage after successful update
+                  localStorage.removeItem("pendingUpdates");
+                }
+              }
+            } catch (error) {
+              console.error(
+                "Error processing updates from local storage:",
+                error
+              );
+            }
+          }
+        };
+
+        // await handleLocalStorageUpdates();
+        await fetchOrCreateUserDocuments(user);
       } else {
         setAuthUser({});
         setUserData({});
@@ -114,6 +153,102 @@ export const UserProvider = ({ children }) => {
     return () => clearInterval(intervalId);
   }, [userData, authUser]); // Depend on userData and authUser to re-run the effect when they change
 
+  // Store the pending updates in a ref so that it doesn't trigger effects
+  const pendingUpdatesRef = useRef(pendingFlashcardUpdates);
+  const userDataRef = useRef(userData);
+
+  // Update the ref whenever the pendingFlashcardUpdates changes
+  useEffect(() => {
+    pendingUpdatesRef.current = pendingFlashcardUpdates;
+    userDataRef.current = userData;
+  }, [pendingFlashcardUpdates, userData]);
+
+  const handleFirebaseUpdate = useCallback(
+    async (
+      flashcardUpdates = pendingUpdatesRef.current,
+      userDataUpdates = userDataRef.current,
+      user = authUser
+    ) => {
+      console.log("Checking pendingFlashcardUpdates...");
+      if (Object.keys(flashcardUpdates).length > 0) {
+        console.log("Pending updates found, updating firebase...");
+        try {
+          // Begin a batch to perform all updates together
+          const batch = writeBatch(db);
+
+          // Update user document with overall review stats
+          const userRef = doc(db, "users", user.uid);
+
+          // TODO: Convert ISO string back to Firestore Timestamp (and same for pendingUpdates and local storage updates)
+          let lastReviewedTimestamp;
+          if (typeof userDataUpdates.lastReviewed === "string") {
+            // If it's a string, convert it to a Date object first
+            const userLastReviewedDate = new Date(userDataUpdates.lastReviewed);
+            lastReviewedTimestamp = Timestamp.fromDate(userLastReviewedDate);
+          } else {
+            // Assume it's already a Timestamp
+            lastReviewedTimestamp = userDataUpdates.lastReviewed;
+          }
+
+          batch.update(userRef, {
+            cardsReviewed: userDataUpdates.cardsReviewed,
+            reviewStreak: userDataUpdates.reviewStreak,
+            lastReviewed: lastReviewedTimestamp,
+          });
+
+          // Update relevant deck documents with changes to flashcard data
+
+          for (const [deckId, updates] of Object.entries(flashcardUpdates)) {
+            const deckRef = doc(db, "users", user.uid, "decks", deckId);
+            const deckSnap = await getDoc(deckRef);
+
+            if (deckSnap.exists()) {
+              const deckData = deckSnap.data();
+              // Clone the existing flashcards array from the snapshot data
+              let updatedFlashcards = [...deckData.flashcards];
+
+              // Update each flashcard in the cloned array based on the pending updates
+              for (const [flashcardId, updateData] of Object.entries(updates)) {
+                const index = updatedFlashcards.findIndex(
+                  (f) => f.id === Number(flashcardId)
+                );
+                if (index !== -1) {
+                  updatedFlashcards[index] = {
+                    ...updatedFlashcards[index],
+                    ...updateData,
+                  };
+                }
+              }
+
+              // Set the updated array back to the deck document
+              batch.update(deckRef, { flashcards: updatedFlashcards });
+            }
+          }
+
+          // Commit the batch
+          await batch.commit();
+
+          // Clear the ref
+          pendingUpdatesRef.current = {};
+
+          // Clear the pending updates state itself
+          setPendingFlashcardUpdates({});
+
+          // Clear local storage
+          localStorage.removeItem("pendingUpdates");
+          return { success: true }; // Indicate success
+        } catch (error) {
+          console.error("Error updating user session data:", error);
+          return { success: false, error: error.message }; // Indicate failure and include error message
+        }
+      } else {
+        console.log("No updates to perform");
+        return { success: true };
+      }
+    },
+    [db, authUser]
+  );
+
   const handleSignInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     try {
@@ -127,10 +262,10 @@ export const UserProvider = ({ children }) => {
     }
   };
 
-  const handleSignOut = async () => {
+  const handleSignOut = useCallback(async () => {
     setLoading(true);
     try {
-      await handleEndSession();
+      await handleFirebaseUpdate();
       signOut(auth); // Sign out from Firebase auth
       setAuthUser(null); // Update state to reflect that user is signed out
       setUserData(null);
@@ -141,7 +276,14 @@ export const UserProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [
+    handleFirebaseUpdate,
+    setLoading,
+    signOut,
+    setAuthUser,
+    setUserData,
+    setUserDeckData,
+  ]);
 
   // Function to add a new deck to the user's decks collection
   const addDeckToUser = async (newDeck) => {
@@ -284,72 +426,18 @@ export const UserProvider = ({ children }) => {
     }
   };
 
-  const handleEndSession = async () => {
-    try {
-      // Begin a batch to perform all updates together
-      const batch = writeBatch(db);
-
-      // Update user document with overall review stats
-      const userRef = doc(db, "users", authUser.uid);
-      batch.update(userRef, {
-        cardsReviewed: userData.cardsReviewed,
-        reviewStreak: userData.reviewStreak,
-        lastReviewed: userData.lastReviewed,
-      });
-
-      for (const [deckId, flashcardsUpdates] of Object.entries(
-        pendingFlashcardUpdates
-      )) {
-        const deckRef = doc(db, "users", authUser.uid, "decks", deckId);
-        const deckSnap = await getDoc(deckRef);
-
-        if (deckSnap.exists()) {
-          const deckData = deckSnap.data();
-          // Clone the existing flashcards array from the snapshot data
-          let updatedFlashcards = [...deckData.flashcards];
-
-          // Update each flashcard in the cloned array based on the pending updates
-          for (const [flashcardId, updateData] of Object.entries(
-            flashcardsUpdates
-          )) {
-            const index = updatedFlashcards.findIndex(
-              (f) => f.id === Number(flashcardId)
-            );
-            if (index !== -1) {
-              updatedFlashcards[index] = {
-                ...updatedFlashcards[index],
-                ...updateData,
-              };
-            }
-          }
-
-          // Set the updated array back to the deck document
-          batch.update(deckRef, { flashcards: updatedFlashcards });
-        }
-      }
-
-      // Commit the batch
-      await batch.commit();
-
-      // Reset pending updates
-      setPendingFlashcardUpdates({});
-      return { success: true }; // Indicate success
-    } catch (error) {
-      console.error("Error updating user session data:", error);
-      return { success: false, error: error.message }; // Indicate failure and include error message
-    }
-  };
-
   return (
     <UserContext.Provider
       value={{
         authUser,
+        userDataRef,
         userData,
         setUserData,
         userDeckData,
         setUserDeckData,
         pendingFlashcardUpdates,
         setPendingFlashcardUpdates,
+        pendingUpdatesRef,
         loading,
         handleSignInWithGoogle,
         handleSignOut,
@@ -358,7 +446,7 @@ export const UserProvider = ({ children }) => {
         addFlashcardToUserDeck,
         editFlashcardInUserDeck,
         deleteFlashcardInUserDeck,
-        handleEndSession,
+        handleFirebaseUpdate,
       }}
     >
       {children}

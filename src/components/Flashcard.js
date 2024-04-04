@@ -1,6 +1,6 @@
 import { faCheck, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useUser } from "../helpers/Context";
 import { Link } from "react-router-dom";
 import { Timestamp } from "firebase/firestore";
@@ -13,11 +13,15 @@ function Flashcard({
   onCurrentIndexChange,
   isNextCard = false,
 }) {
+  const [debounceTimer, setDebounceTimer] = useState(null);
+  const [intervalTimer, setIntervalTimer] = useState(null);
+
   const {
     userData,
     setUserData,
     pendingFlashcardUpdates,
     setPendingFlashcardUpdates,
+    handleFirebaseUpdate,
   } = useUser();
   const [flipped, setFlipped] = useState(false);
 
@@ -27,70 +31,99 @@ function Flashcard({
     }
   };
 
-  const handleReview = (isCorrect, flashcardId, deckId) => {
-    const now = new Date();
+  const handleFirebaseUpdateRef = useRef();
 
-    const isNewDayReview = () => {
-      // Determine if the reviewStreak should be incremented
-      const lastReviewDate = userData.lastReviewed
-        ? new Date(userData.lastReviewed.seconds * 1000)
-        : null;
+  // Store the latest function in the ref
+  useEffect(() => {
+    handleFirebaseUpdateRef.current = handleFirebaseUpdate;
+  }, [handleFirebaseUpdate]);
 
-      // Check if today is different from the last review date (ignoring time)
-      return (
-        !lastReviewDate || now.toDateString() !== lastReviewDate.toDateString()
-      );
-    };
+  const handleReview = useCallback(
+    (isCorrect, flashcardId, deckId) => {
+      const now = new Date();
+      const nowISOString = now.toISOString();
 
-    setUserData((prevUserData) => {
-      const newStreak = isNewDayReview()
-        ? prevUserData.reviewStreak + 1
-        : prevUserData.reviewStreak;
+      const isNewDayReview = () => {
+        // Determine if the reviewStreak should be incremented
+        const lastReviewDate = userData.lastReviewed
+          ? new Date(userData.lastReviewed)
+          : null;
 
-      // Update and return the new user data object
-      return {
-        ...prevUserData,
-        reviewStreak: newStreak,
-        cardsReviewed: prevUserData.cardsReviewed + 1,
-        lastReviewed: Timestamp.fromDate(now),
-      };
-    });
-
-    // Calculate new strength level of the flashcard
-    const strengthChange = isCorrect ? 1 : -1;
-    const existingStrength =
-      pendingFlashcardUpdates?.[deckId]?.[flashcardId]?.strength ?? 0;
-    let newStrength = existingStrength + strengthChange;
-    // Ensure newStrength is within limits of 0 and 5
-    newStrength = Math.max(0, Math.min(newStrength, 5));
-
-    setPendingFlashcardUpdates((prevState) => {
-      const deckUpdates = prevState[deckId] || {};
-      const flashcardUpdates = deckUpdates[flashcardId] || {
-        strength: 0,
-        lastReviewed: now,
+        // Check if today is different from the last review date (ignoring time)
+        return (
+          !lastReviewDate ||
+          now.toDateString() !== lastReviewDate.toDateString()
+        );
       };
 
-      // Calculate new strength ensuring it's within 0-5 range
-      const newStrength = Math.max(
-        0,
-        Math.min(flashcardUpdates.strength + strengthChange, 5)
-      );
+      // Update user data
+      const updatedUserData = {
+        ...userData,
+        reviewStreak: isNewDayReview()
+          ? userData.reviewStreak + 1
+          : userData.reviewStreak,
+        cardsReviewed: userData.cardsReviewed + 1,
+        lastReviewed: nowISOString,
+      };
 
-      return {
-        ...prevState,
+      setUserData(updatedUserData);
+
+      // Calculate new strength level of the flashcard
+      const strengthChange = isCorrect ? 1 : -1;
+      const existingStrength =
+        pendingFlashcardUpdates?.[deckId]?.[flashcardId]?.strength ?? 0;
+      let newStrength = existingStrength + strengthChange;
+      // Ensure newStrength is within limits of 0 and 5
+      newStrength = Math.max(0, Math.min(newStrength, 5));
+
+      // Update pending flashcard update state
+      const updatedFlashcardUpdates = {
+        ...pendingFlashcardUpdates,
         [deckId]: {
-          ...deckUpdates,
+          ...pendingFlashcardUpdates[deckId],
           [flashcardId]: {
             strength: newStrength,
-            lastReviewed: now,
+            lastReviewed: nowISOString,
           },
         },
       };
-    });
 
-    onNext();
-  };
+      setPendingFlashcardUpdates(updatedFlashcardUpdates);
+
+      // Update to local storage
+      const pendingUpdates = {
+        userData: updatedUserData,
+        flashcardUpdates: updatedFlashcardUpdates,
+      };
+      localStorage.setItem("pendingUpdates", JSON.stringify(pendingUpdates));
+      console.log("Local storage items set");
+
+      // Progress to next flashcard
+      onNext();
+
+      // Clear existing debounce timer and set a new one
+      clearTimeout(debounceTimer);
+      const newDebounceTimer = setTimeout(() => {
+        handleFirebaseUpdateRef.current();
+      }, 15000); // 15 seconds debounce
+      setDebounceTimer(newDebounceTimer);
+    },
+    [debounceTimer]
+  );
+
+  // Set up regular interval update
+  useEffect(() => {
+    const newIntervalTimer = setInterval(() => {
+      handleFirebaseUpdateRef.current();
+    }, 60000); // 1-minute interval
+    setIntervalTimer(newIntervalTimer);
+
+    // Cleanup function to clear timers
+    return () => {
+      clearTimeout(debounceTimer);
+      clearInterval(newIntervalTimer);
+    };
+  }, [debounceTimer]);
 
   if (currentIndex === -1 && !flashcard) {
     return (

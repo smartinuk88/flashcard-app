@@ -3,7 +3,7 @@ import Header from "../components/Header";
 import Flashcard from "../components/Flashcard";
 import Footer from "../components/Footer";
 import AddFlashCardModal from "../components/AddFlashCardModal";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import DeckEditButtons from "../components/DeckEditButtons";
 import EditFlashcardModal from "../components/EditFlashcardModal";
 import DeleteFlashcardModal from "../components/DeleteFlashcardModal";
@@ -13,7 +13,14 @@ import { db } from "../firebase-config";
 
 function DeckDash() {
   const { state: deck } = useLocation();
-  const { loading, authUser, userData } = useUser();
+  const {
+    pendingUpdatesRef,
+    loading,
+    authUser,
+    userData,
+    userDataRef,
+    handleFirebaseUpdate,
+  } = useUser();
   const [deckData, setDeckData] = useState(deck);
   const [addFlashcardModal, setAddFlashcardModal] = useState(false);
   const [editFlashcardModal, setEditFlashcardModal] = useState(false);
