@@ -76,7 +76,7 @@ function Flashcard({
       // Ensure newStrength is within limits of 0 and 5
       newStrength = Math.max(0, Math.min(newStrength, 5));
 
-      // Update pending flashcard update state
+      // Update pendingFlashcardUpdate state
       const updatedFlashcardUpdates = {
         ...pendingFlashcardUpdates,
         [deckId]: {

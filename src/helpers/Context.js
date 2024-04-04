@@ -76,6 +76,40 @@ export const UserProvider = ({ children }) => {
     setUserDeckData(userDecks);
   };
 
+  const handleLocalStorageUpdates = async (currentUser) => {
+    const pendingUpdatesString = localStorage.getItem("pendingUpdates");
+    if (pendingUpdatesString) {
+      try {
+        const pendingUpdates = JSON.parse(pendingUpdatesString);
+        // Ensure that there are actually updates to process
+        if (pendingUpdates && Object.keys(pendingUpdates).length > 0) {
+          console.log(
+            "Found pending updates in local storage, updating Firebase..."
+          );
+
+          if (currentUser && currentUser.uid) {
+            // Call handleFirebaseUpdate with the modified pending updates (from local storage instead of from state)
+            const updateResult = await handleFirebaseUpdate(
+              pendingUpdates.flashcardUpdates,
+              pendingUpdates.userData,
+              currentUser
+            );
+
+            if (updateResult.success) {
+              // Clear local storage after successful update
+              localStorage.removeItem("pendingUpdates");
+              setPendingFlashcardUpdates({});
+            }
+          } else {
+            console.error("Cannot update Firestore without a valid user ID");
+          }
+        }
+      } catch (error) {
+        console.error("Error processing updates from local storage:", error);
+      }
+    }
+  };
+
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       setLoading(true);
@@ -83,36 +117,7 @@ export const UserProvider = ({ children }) => {
         // User is signed in
         setAuthUser(user);
 
-        const handleLocalStorageUpdates = async () => {
-          const pendingUpdatesString = localStorage.getItem("pendingUpdates");
-          if (pendingUpdatesString) {
-            try {
-              const pendingUpdates = JSON.parse(pendingUpdatesString);
-              // Ensure that there are actually updates to process
-              if (pendingUpdates && Object.keys(pendingUpdates).length > 0) {
-                console.log(
-                  "Found pending updates in local storage, updating Firebase..."
-                );
-                // Call handleFirebaseUpdate with the pending updates
-                const updateResult = await handleFirebaseUpdate(
-                  pendingUpdates.flashcardUpdates,
-                  pendingUpdates.userData
-                );
-                if (updateResult.success) {
-                  // Clear local storage after successful update
-                  localStorage.removeItem("pendingUpdates");
-                }
-              }
-            } catch (error) {
-              console.error(
-                "Error processing updates from local storage:",
-                error
-              );
-            }
-          }
-        };
-
-        // await handleLocalStorageUpdates();
+        await handleLocalStorageUpdates(user);
         await fetchOrCreateUserDocuments(user);
       } else {
         setAuthUser({});
@@ -163,6 +168,22 @@ export const UserProvider = ({ children }) => {
     userDataRef.current = userData;
   }, [pendingFlashcardUpdates, userData]);
 
+  // Convert the lastReviewed for each flashcard in the state to a Timestamp
+  const convertLastReviewedToTimestamp = (flashcardUpdates) => {
+    const updatedUpdates = { ...flashcardUpdates };
+
+    Object.entries(updatedUpdates).forEach(([deckId, flashcards]) => {
+      Object.entries(flashcards).forEach(([flashcardId, flashcardData]) => {
+        const flashcardLastReviewedDate = new Date(flashcardData.lastReviewed);
+        updatedUpdates[deckId][flashcardId].lastReviewed = Timestamp.fromDate(
+          flashcardLastReviewedDate
+        );
+      });
+    });
+
+    return updatedUpdates;
+  };
+
   const handleFirebaseUpdate = useCallback(
     async (
       flashcardUpdates = pendingUpdatesRef.current,
@@ -179,7 +200,7 @@ export const UserProvider = ({ children }) => {
           // Update user document with overall review stats
           const userRef = doc(db, "users", user.uid);
 
-          // TODO: Convert ISO string back to Firestore Timestamp (and same for pendingUpdates and local storage updates)
+          // Convert ISO string for userData back to Firestore Timestamp
           let lastReviewedTimestamp;
           if (typeof userDataUpdates.lastReviewed === "string") {
             // If it's a string, convert it to a Date object first
@@ -198,7 +219,13 @@ export const UserProvider = ({ children }) => {
 
           // Update relevant deck documents with changes to flashcard data
 
-          for (const [deckId, updates] of Object.entries(flashcardUpdates)) {
+          // Convert ISO strings of flashcards lastReviewed property
+          const updatedFlashcardUpdates =
+            convertLastReviewedToTimestamp(flashcardUpdates);
+
+          for (const [deckId, updates] of Object.entries(
+            updatedFlashcardUpdates
+          )) {
             const deckRef = doc(db, "users", user.uid, "decks", deckId);
             const deckSnap = await getDoc(deckRef);
 
