@@ -1,11 +1,16 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFire } from "@fortawesome/free-solid-svg-icons";
+import { faFire, faFloppyDisk } from "@fortawesome/free-solid-svg-icons";
 import { Link } from "react-router-dom";
 import { useUser } from "../helpers/Context";
 
 function Header() {
-  const { userData, handleSignOut, streakLostMessage, dataSyncMessage } =
-    useUser();
+  const {
+    userData,
+    handleSignOut,
+    handleFirebaseUpdate,
+    streakLostMessage,
+    dataSyncMessage,
+  } = useUser();
 
   return (
     <header className="sticky w-full h-14 bg-white">
@@ -16,12 +21,12 @@ function Header() {
           </p>
         </Link>
 
-        <p className="hidden md:block">
-          Welcome back,{" "}
-          <span className="text-primary-blue">{userData.displayName}</span>
-        </p>
-
         <div className="flex space-x-2 justify-between items-center">
+          <FontAwesomeIcon
+            onClick={() => handleFirebaseUpdate()}
+            className="cursor-pointer"
+            icon={faFloppyDisk}
+          />
           <p>
             <FontAwesomeIcon icon={faFire} /> {userData.reviewStreak}
           </p>

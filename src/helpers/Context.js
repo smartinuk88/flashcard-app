@@ -191,18 +191,26 @@ export const UserProvider = ({ children }) => {
 
   // Convert the lastReviewed for each flashcard in the state to a Timestamp
   const convertLastReviewedToTimestamp = (flashcardUpdates) => {
-    const updatedUpdates = { ...flashcardUpdates };
+    // Clone the updates object to avoid directly mutating the original state
+    const updatesClone = JSON.parse(JSON.stringify(flashcardUpdates));
 
-    Object.entries(updatedUpdates).forEach(([deckId, flashcards]) => {
-      Object.entries(flashcards).forEach(([flashcardId, flashcardData]) => {
-        const flashcardLastReviewedDate = new Date(flashcardData.lastReviewed);
-        updatedUpdates[deckId][flashcardId].lastReviewed = Timestamp.fromDate(
-          flashcardLastReviewedDate
-        );
-      });
-    });
+    // Iterate through each deck and flashcard
+    for (const deckId in updatesClone) {
+      const flashcards = updatesClone[deckId];
+      for (const flashcardId in flashcards) {
+        const flashcard = flashcards[flashcardId];
 
-    return updatedUpdates;
+        // Check if lastReviewed is a string (ISO date string)
+        if (typeof flashcard.lastReviewed === "string") {
+          // Convert ISO string to Firestore Timestamp
+          flashcard.lastReviewed = Timestamp.fromDate(
+            new Date(flashcard.lastReviewed)
+          );
+        }
+      }
+    }
+
+    return updatesClone;
   };
 
   const handleFirebaseUpdate = useCallback(
@@ -298,7 +306,7 @@ export const UserProvider = ({ children }) => {
           console.error("Error updating user session data:", error);
           setDataSyncMessage({
             success: false,
-            message: `Error syncing data: ${error.message}`,
+            message: `Data sync error: ${error.message}`,
           });
           setTimeout(() => {
             setDataSyncMessage({});
