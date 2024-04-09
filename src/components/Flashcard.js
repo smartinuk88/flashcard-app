@@ -19,6 +19,8 @@ function Flashcard({
   const {
     userData,
     setUserData,
+    userDeckData,
+    setUserDeckData,
     pendingFlashcardUpdates,
     setPendingFlashcardUpdates,
     handleFirebaseUpdate,
@@ -81,11 +83,34 @@ function Flashcard({
 
       // Calculate new strength level of the flashcard
       const strengthChange = isCorrect ? 1 : -1;
-      const existingStrength =
-        pendingFlashcardUpdates?.[deckId]?.[flashcardId]?.strength ?? 0;
+      const flashcardFromDeckData = userDeckData
+        .find((deck) => deck.id === deckId)
+        ?.flashcards.find((flashcard) => flashcard.id === flashcardId);
+
+      console.log(flashcardFromDeckData);
+
+      const existingStrength = flashcardFromDeckData
+        ? flashcardFromDeckData.strength
+        : 0;
       let newStrength = existingStrength + strengthChange;
       // Ensure newStrength is within limits of 0 and 5
       newStrength = Math.max(0, Math.min(newStrength, 5));
+
+      // Update userDeckData with the new strength for the current session
+      const updatedDeckData = userDeckData.map((deck) => {
+        if (deck.id === deckId) {
+          return {
+            ...deck,
+            flashcards: deck.flashcards.map((flashcard) => {
+              if (flashcard.id === flashcardId) {
+                return { ...flashcard, strength: newStrength };
+              }
+              return flashcard;
+            }),
+          };
+        }
+        return deck;
+      });
 
       // Update pendingFlashcardUpdate state
       const updatedFlashcardUpdates = {
@@ -99,6 +124,7 @@ function Flashcard({
         },
       };
 
+      setUserDeckData(updatedDeckData);
       setPendingFlashcardUpdates(updatedFlashcardUpdates);
 
       // Update to local storage
