@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useUser } from "../helpers/Context";
+import { v4 as uuidv4 } from "uuid";
 
 function AddFlashCardModal({ deck, onToggleFlashcardModal }) {
   const { addFlashcardToUserDeck } = useUser();
@@ -11,7 +12,7 @@ function AddFlashCardModal({ deck, onToggleFlashcardModal }) {
   const addFlashcard = async (e) => {
     e.preventDefault();
     const newFlashcard = {
-      id: deck.length,
+      id: uuidv4(), // Generates unique id
       front: cardFront,
       back: cardBack,
       lastReviewed: null,
@@ -22,6 +23,7 @@ function AddFlashCardModal({ deck, onToggleFlashcardModal }) {
 
     if (result.success) {
       setMessage("Flashcard added successfully!");
+      console.log(newFlashcard);
     } else {
       setMessage(`Error adding flashcard: ${result.error}`);
     }

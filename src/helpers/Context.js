@@ -399,10 +399,10 @@ export const UserProvider = ({ children }) => {
 
       if (docSnap.exists()) {
         const deckData = docSnap.data();
-        // Ensure flashcards array exists and append new flashcard with updated id
+        // Ensure flashcards array exists
         const updatedFlashcards = [
           ...(deckData.flashcards || []),
-          { ...newFlashcard, id: (deckData.flashcards || []).length },
+          { ...newFlashcard },
         ];
 
         // Update the document with the new array

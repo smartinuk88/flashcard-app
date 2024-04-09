@@ -157,11 +157,12 @@ function Flashcard({
       </div>
     );
   } else if (!flashcard) {
+    // In case no flashcard in deck
     return (
       <div className="relative flex flex-col justify-center items-center mb-4 border border-primary-blue w-72 h-96 rounded-lg shadow-md text-2xl font-semibold text-center">
         <p>No flashcards added</p>
       </div>
-    ); // In case no flashcard in deck
+    );
   }
   return (
     <div
