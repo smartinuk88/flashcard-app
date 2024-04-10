@@ -6,6 +6,7 @@ import { useUser } from "../helpers/Context";
 function Header() {
   const {
     userData,
+    pendingFlashcardUpdates,
     handleSignOut,
     handleFirebaseUpdate,
     streakLostMessage,
@@ -22,11 +23,13 @@ function Header() {
         </Link>
 
         <div className="flex space-x-2 justify-between items-center">
-          <FontAwesomeIcon
-            onClick={() => handleFirebaseUpdate()}
-            className="cursor-pointer"
-            icon={faFloppyDisk}
-          />
+          {Object.keys(pendingFlashcardUpdates).length ? (
+            <FontAwesomeIcon
+              onClick={() => handleFirebaseUpdate()}
+              className="cursor-pointer"
+              icon={faFloppyDisk}
+            />
+          ) : null}
           <p>
             <FontAwesomeIcon icon={faFire} /> {userData.reviewStreak}
           </p>

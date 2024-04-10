@@ -152,7 +152,7 @@ function Flashcard({
   useEffect(() => {
     const newIntervalTimer = setInterval(() => {
       handleFirebaseUpdateRef.current();
-    }, 90000); // 90 second interval
+    }, 60000); // 60 second interval
     setIntervalTimer(newIntervalTimer);
 
     // Cleanup function to clear timers

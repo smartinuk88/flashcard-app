@@ -315,6 +315,13 @@ export const UserProvider = ({ children }) => {
         }
       } else {
         console.log("No updates to perform");
+        setDataSyncMessage({
+          success: true,
+          message: `Data already synced`,
+        });
+        setTimeout(() => {
+          setDataSyncMessage({});
+        }, 3000);
         return { success: true };
       }
     },
