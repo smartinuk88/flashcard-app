@@ -35,6 +35,9 @@ export const UserProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [streakLostMessage, setStreakLostMessage] = useState("");
   const [dataSyncMessage, setDataSyncMessage] = useState({});
+  const [debounceTimer, setDebounceTimer] = useState(null);
+  const [intervalTimer, setIntervalTimer] = useState(null);
+  const handleFirebaseUpdateRef = useRef();
 
   // Function to handle fetching or creating user document in Firestore
   const fetchOrCreateUserDocuments = async (user) => {
@@ -314,6 +317,20 @@ export const UserProvider = ({ children }) => {
     [db, authUser]
   );
 
+  // Set up regular interval firebase update
+  useEffect(() => {
+    const newIntervalTimer = setInterval(() => {
+      handleFirebaseUpdateRef.current();
+    }, 90000); // 90 second interval
+    setIntervalTimer(newIntervalTimer);
+
+    // Cleanup function to clear timers
+    return () => {
+      clearTimeout(debounceTimer);
+      clearInterval(newIntervalTimer);
+    };
+  }, [debounceTimer]);
+
   const handleSignInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     try {
@@ -514,6 +531,11 @@ export const UserProvider = ({ children }) => {
         handleFirebaseUpdate,
         streakLostMessage,
         dataSyncMessage,
+        debounceTimer,
+        setDebounceTimer,
+        intervalTimer,
+        setIntervalTimer,
+        handleFirebaseUpdateRef,
       }}
     >
       {children}

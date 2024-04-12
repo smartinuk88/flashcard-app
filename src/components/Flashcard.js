@@ -13,9 +13,6 @@ function Flashcard({
   onCurrentIndexChange,
   isNextCard = false,
 }) {
-  const [debounceTimer, setDebounceTimer] = useState(null);
-  const [intervalTimer, setIntervalTimer] = useState(null);
-
   const {
     userData,
     setUserData,
@@ -24,6 +21,9 @@ function Flashcard({
     pendingFlashcardUpdates,
     setPendingFlashcardUpdates,
     handleFirebaseUpdate,
+    debounceTimer,
+    setDebounceTimer,
+    handleFirebaseUpdateRef,
   } = useUser();
   const [flipped, setFlipped] = useState(false);
 
@@ -32,8 +32,6 @@ function Flashcard({
       setFlipped(!flipped);
     }
   };
-
-  const handleFirebaseUpdateRef = useRef();
 
   // Store the latest function in the ref
   useEffect(() => {
@@ -145,22 +143,8 @@ function Flashcard({
       }, 15000); // 15 seconds debounce
       setDebounceTimer(newDebounceTimer);
     },
-    [debounceTimer]
+    [debounceTimer, setDebounceTimer]
   );
-
-  // Set up regular interval update
-  useEffect(() => {
-    const newIntervalTimer = setInterval(() => {
-      handleFirebaseUpdateRef.current();
-    }, 90000); // 90 second interval
-    setIntervalTimer(newIntervalTimer);
-
-    // Cleanup function to clear timers
-    return () => {
-      clearTimeout(debounceTimer);
-      clearInterval(newIntervalTimer);
-    };
-  }, [debounceTimer]);
 
   if (currentIndex === -1 && !flashcard) {
     return (
