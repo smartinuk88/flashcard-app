@@ -3,7 +3,7 @@ import Header from "../components/Header";
 import Flashcard from "../components/Flashcard";
 import Footer from "../components/Footer";
 import AddFlashCardModal from "../components/AddFlashCardModal";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect } from "react";
 import DeckEditButtons from "../components/DeckEditButtons";
 import EditFlashcardModal from "../components/EditFlashcardModal";
 import DeleteFlashcardModal from "../components/DeleteFlashcardModal";
@@ -13,14 +13,7 @@ import { db } from "../firebase-config";
 
 function DeckDash() {
   const { state: deck } = useLocation();
-  const {
-    pendingUpdatesRef,
-    loading,
-    authUser,
-    userData,
-    userDataRef,
-    handleFirebaseUpdate,
-  } = useUser();
+  const { loading, authUser, userData } = useUser();
   const [deckData, setDeckData] = useState(deck);
   const [addFlashcardModal, setAddFlashcardModal] = useState(false);
   const [editFlashcardModal, setEditFlashcardModal] = useState(false);
@@ -45,8 +38,8 @@ function DeckDash() {
 
   // Function to advance to the next flashcard
   const getNextFlashcard = () => {
-    setCurrentIndex(
-      currentIndex < deckData.flashcards.length - 1 ? currentIndex + 1 : -1
+    setCurrentIndex((prevState) =>
+      prevState < deckData.flashcards.length - 1 ? prevState + 1 : -1
     );
   };
 
@@ -55,7 +48,7 @@ function DeckDash() {
   return (
     <>
       <Header />
-      <main className="flex flex-col justify-between items-center h-[calc(100vh-92px)] p-10">
+      <main className="flex flex-col justify-between items-center h-[calc(100vh-104px)] p-10">
         <div>
           <h1 className="text-center text-2xl md:text-4xl font-bold mb-1">
             {deckData.title}
@@ -105,6 +98,7 @@ function DeckDash() {
           />
 
           {deckData.flashcards.length > 1 &&
+            currentIndex >= 0 &&
             currentIndex < deckData.flashcards.length - 1 && (
               <Flashcard
                 flashcard={deckData.flashcards[currentIndex + 1]}

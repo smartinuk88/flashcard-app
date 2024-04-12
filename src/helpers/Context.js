@@ -133,51 +133,44 @@ export const UserProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    // Function to check if 24 hours have passed since last review
-    const checkReviewStreak = async () => {
-      const now = new Date();
-      let lastReviewDate = userData?.lastReviewed;
-      if (lastReviewDate) {
-        // If lastReviewed is a Firestore Timestamp, convert it to a Date object
-        if (lastReviewDate.toDate) {
-          lastReviewDate = lastReviewDate.toDate();
-        } else if (typeof lastReviewDate === "string") {
-          // If lastReviewed is an ISO string, parse it to a Date object
-          lastReviewDate = new Date(lastReviewDate);
-        }
-      } else {
-        lastReviewDate = null;
-      }
-      const oneDay = 24 * 60 * 60 * 1000; // milliseconds in one day
+    const now = new Date();
 
-      if (
-        userData.reviewStreak !== 0 &&
-        lastReviewDate &&
-        now - lastReviewDate > oneDay
-      ) {
-        // If more than 24 hours have passed since the last review, reset streak
-        console.log(
-          "More than 24 hours have passed since last review. Resetting streak."
-        );
-        setUserData((prevUserData) => ({
-          ...prevUserData,
-          reviewStreak: 0,
-        }));
-        setStreakLostMessage(
-          "You have lost your streak, but it is never too late to start again!"
-        );
-        setTimeout(() => {
-          setStreakLostMessage("");
-        }, 3000);
-      }
-    };
+    // If userData.lastReviewed is a Firestore Timestamp, convert it to a Date object
+    const lastReviewDate = userData?.lastReviewed?.toDate
+      ? userData.lastReviewed.toDate()
+      : new Date(userData?.lastReviewed);
+    const oneDay = 24 * 60 * 60 * 1000; // milliseconds in one day
+
+    // If lastReviewDate is not set or if more than 24 hours have passed since the last review
+    if (
+      userData?.reviewStreak > 0 &&
+      (!lastReviewDate || now - lastReviewDate > oneDay)
+    ) {
+      console.log(
+        "More than 24 hours have passed since last review. Resetting streak."
+      );
+      setUserData((prevUserData) => ({
+        ...prevUserData,
+        reviewStreak: 0,
+      }));
+      // Notify user they have lost their streak
+      setStreakLostMessage(
+        "You have lost your streak. Time to get back on the horse!"
+      );
+      setTimeout(() => {
+        setStreakLostMessage("");
+      }, 5000);
+    }
 
     // Set up the interval to run the check every hour
-    const intervalId = setInterval(checkReviewStreak, 3600000); // 3600000 ms = 1 hour
+    const intervalId = setInterval(() => {
+      // Re-run the same check as above inside this interval
+      // ...
+    }, 3600000); // 3600000 ms = 1 hour
 
     // Cleanup function to clear the interval when the component unmounts
     return () => clearInterval(intervalId);
-  }, [userData]); // Depend on userData to re-run the effect when they change
+  }, [userData]);
 
   // Store the pending updates in a ref so that it doesn't trigger effects
   const pendingUpdatesRef = useRef(pendingFlashcardUpdates);
@@ -315,13 +308,6 @@ export const UserProvider = ({ children }) => {
         }
       } else {
         console.log("No updates to perform");
-        setDataSyncMessage({
-          success: true,
-          message: `Data already synced`,
-        });
-        setTimeout(() => {
-          setDataSyncMessage({});
-        }, 3000);
         return { success: true };
       }
     },

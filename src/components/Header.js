@@ -14,8 +14,8 @@ function Header() {
   } = useUser();
 
   return (
-    <header className="sticky w-full h-14 bg-white">
-      <div className="flex justify-between items-center px-6 pt-3 pb-1">
+    <header className="sticky w-full h-14 pt-1 bg-white">
+      <div className="flex justify-between items-center px-6">
         <Link to={"/"}>
           <p className="text-3xl">
             Flash<span className="font-bold text-primary-blue">Fluent</span>
