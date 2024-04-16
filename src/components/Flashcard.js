@@ -157,28 +157,6 @@ function Flashcard({
     [debounceTimer, setDebounceTimer]
   );
 
-  if (currentIndex === -1 && !flashcard) {
-    return (
-      <div className="relative flex flex-col justify-between items-center mb-4 border border-primary-blue w-72 h-96 rounded-lg shadow-md text-xl font-semibold text-center py-8">
-        <p>Review Session Finished!</p>
-        <div className="flex flex-col">
-          <button
-            onClick={() => onCurrentIndexChange(0)}
-            className="p-4 mb-3 rounded-lg bg-green-500 text-white text-sm hover:bg-green-600 shadow-md transition duration-100"
-          >
-            Review Deck Again
-          </button>
-
-          <Link to={"/"}>
-            <button className="p-4 rounded-lg bg-red-500 text-white text-sm hover:bg-red-600 shadow-md transition duration-100">
-              Close Deck
-            </button>
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div
       onClick={handleFlip}

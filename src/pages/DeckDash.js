@@ -1,4 +1,4 @@
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import Header from "../components/Header";
 import Flashcard from "../components/Flashcard";
 import Footer from "../components/Footer";
@@ -83,9 +83,31 @@ function DeckDash() {
         )}
 
         <div className="relative flex flex-col items-center">
+          {/* No flashcards in deck condition */}
           {deckData.flashcards.length === 0 && (
             <div className="relative flex flex-col justify-center items-center mb-4 border border-primary-blue w-72 h-96 rounded-lg shadow-md text-2xl font-semibold text-center">
               <p>No flashcards added</p>
+            </div>
+          )}
+
+          {/* Review Session Finished Condition */}
+          {currentIndex === -1 && (
+            <div className="relative flex flex-col justify-between items-center mb-4 border border-primary-blue w-72 h-96 rounded-lg shadow-md text-xl font-semibold text-center py-8">
+              <p>Review Session Finished!</p>
+              <div className="flex flex-col">
+                <button
+                  onClick={() => setCurrentIndex(0)}
+                  className="p-4 mb-3 rounded-lg bg-green-500 text-white text-sm hover:bg-green-600 shadow-md transition duration-100"
+                >
+                  Review Deck Again
+                </button>
+
+                <Link to={"/"}>
+                  <button className="p-4 rounded-lg bg-red-500 text-white text-sm hover:bg-red-600 shadow-md transition duration-100">
+                    Close Deck
+                  </button>
+                </Link>
+              </div>
             </div>
           )}
 
