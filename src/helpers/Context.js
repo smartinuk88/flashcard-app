@@ -248,8 +248,6 @@ export const UserProvider = ({ children }) => {
           const updatedFlashcardUpdates =
             convertLastReviewedToTimestamp(flashcardUpdates);
 
-          console.log(updatedFlashcardUpdates);
-
           for (const [deckId, updates] of Object.entries(
             updatedFlashcardUpdates
           )) {
