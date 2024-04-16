@@ -103,7 +103,16 @@ function Flashcard({
             ...deck,
             flashcards: deck.flashcards.map((flashcard) => {
               if (flashcard.id === flashcardId) {
-                return { ...flashcard, strength: newStrength };
+                console.log({
+                  ...flashcard,
+                  strength: newStrength,
+                  lastReviewed: nowISOString,
+                });
+                return {
+                  ...flashcard,
+                  strength: newStrength,
+                  lastReviewed: nowISOString,
+                };
               }
               return flashcard;
             }),
@@ -168,14 +177,8 @@ function Flashcard({
         </div>
       </div>
     );
-  } else if (!flashcard) {
-    // In case no flashcard in deck
-    return (
-      <div className="relative flex flex-col justify-center items-center mb-4 border border-primary-blue w-72 h-96 rounded-lg shadow-md text-2xl font-semibold text-center">
-        <p>No flashcards added</p>
-      </div>
-    );
   }
+
   return (
     <div
       onClick={handleFlip}

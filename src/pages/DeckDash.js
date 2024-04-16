@@ -83,20 +83,30 @@ function DeckDash() {
         )}
 
         <div className="relative flex flex-col items-center">
-          <Flashcard
-            key={
-              currentIndex >= 0
-                ? deckData.flashcards[currentIndex].id
-                : "finished"
-            }
-            flashcard={
-              currentIndex >= 0 ? deckData.flashcards[currentIndex] : undefined
-            }
-            onNext={getNextFlashcard}
-            currentIndex={currentIndex}
-            onCurrentIndexChange={setCurrentIndex}
-            deckId={deck.id}
-          />
+          {deckData.flashcards.length === 0 && (
+            <div className="relative flex flex-col justify-center items-center mb-4 border border-primary-blue w-72 h-96 rounded-lg shadow-md text-2xl font-semibold text-center">
+              <p>No flashcards added</p>
+            </div>
+          )}
+
+          {currentIndex >= 0 && currentIndex < deckData.flashcards.length ? (
+            <Flashcard
+              key={
+                currentIndex >= 0
+                  ? deckData.flashcards[currentIndex].id
+                  : "finished"
+              }
+              flashcard={
+                currentIndex >= 0
+                  ? deckData.flashcards[currentIndex]
+                  : undefined
+              }
+              onNext={getNextFlashcard}
+              currentIndex={currentIndex}
+              onCurrentIndexChange={setCurrentIndex}
+              deckId={deckData?.id}
+            />
+          ) : null}
 
           <DeckEditButtons
             onSetAddFlashcardModal={setAddFlashcardModal}
