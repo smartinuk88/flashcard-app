@@ -124,7 +124,6 @@ function DeckDash() {
                   : undefined
               }
               onNext={getNextFlashcard}
-              currentIndex={currentIndex}
               onCurrentIndexChange={setCurrentIndex}
               deckId={deckData?.id}
             />

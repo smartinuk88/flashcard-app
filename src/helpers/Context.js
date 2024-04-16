@@ -248,6 +248,8 @@ export const UserProvider = ({ children }) => {
           const updatedFlashcardUpdates =
             convertLastReviewedToTimestamp(flashcardUpdates);
 
+          console.log(updatedFlashcardUpdates);
+
           for (const [deckId, updates] of Object.entries(
             updatedFlashcardUpdates
           )) {
@@ -262,7 +264,7 @@ export const UserProvider = ({ children }) => {
               // Update each flashcard in the cloned array based on the pending updates
               for (const [flashcardId, updateData] of Object.entries(updates)) {
                 const index = updatedFlashcards.findIndex(
-                  (f) => f.id === Number(flashcardId)
+                  (f) => f.id === flashcardId
                 );
                 if (index !== -1) {
                   updatedFlashcards[index] = {

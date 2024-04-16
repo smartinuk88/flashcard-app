@@ -5,14 +5,7 @@ import { useUser } from "../helpers/Context";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
-function Flashcard({
-  flashcard,
-  onNext,
-  deckId,
-  currentIndex = null,
-  onCurrentIndexChange,
-  isNextCard = false,
-}) {
+function Flashcard({ flashcard, onNext, deckId, isNextCard = false }) {
   const {
     userData,
     setUserData,
@@ -103,11 +96,6 @@ function Flashcard({
             ...deck,
             flashcards: deck.flashcards.map((flashcard) => {
               if (flashcard.id === flashcardId) {
-                console.log({
-                  ...flashcard,
-                  strength: newStrength,
-                  lastReviewed: nowISOString,
-                });
                 return {
                   ...flashcard,
                   strength: newStrength,
