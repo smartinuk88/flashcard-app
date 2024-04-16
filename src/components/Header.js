@@ -22,6 +22,16 @@ function Header() {
           </p>
         </Link>
 
+        <div>
+          <p
+            className={`text-center font-semibold ${
+              dataSyncMessage.success ? "text-green-500" : "text-red-500"
+            }`}
+          >
+            {dataSyncMessage.message}
+          </p>
+        </div>
+
         <div className="flex space-x-2 justify-between items-center">
           {Object.keys(pendingFlashcardUpdates).length ? (
             <FontAwesomeIcon
@@ -41,15 +51,8 @@ function Header() {
           </button>
         </div>
       </div>
-      <p className="text-center font-semibold bg-red-500 text-white">
+      <p className="text-center font-semibold text-white bg-red-500">
         {streakLostMessage}
-      </p>
-      <p
-        className={`text-center font-semibold text-white ${
-          dataSyncMessage.success ? "bg-green-500" : "bg-red-500"
-        }`}
-      >
-        {dataSyncMessage.message}
       </p>
     </header>
   );

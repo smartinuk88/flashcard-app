@@ -48,7 +48,7 @@ function DeckDash() {
   return (
     <>
       <Header />
-      <main className="flex flex-col justify-between items-center h-[calc(100vh-104px)] p-10">
+      <main className="flex flex-col justify-between items-center h-[calc(100vh-104px)] p-8">
         <div>
           <h1 className="text-center text-2xl md:text-4xl font-bold mb-1">
             {deckData.title}
@@ -58,6 +58,7 @@ function DeckDash() {
           </p>
         </div>
 
+        {/* Modals for modifying flashcards */}
         {addFlashcardModal && (
           <AddFlashCardModal
             deck={deckData}
@@ -83,7 +84,14 @@ function DeckDash() {
 
         <div className="relative flex flex-col items-center">
           <Flashcard
-            flashcard={deckData.flashcards[currentIndex]}
+            key={
+              currentIndex >= 0
+                ? deckData.flashcards[currentIndex].id
+                : "finished"
+            }
+            flashcard={
+              currentIndex >= 0 ? deckData.flashcards[currentIndex] : undefined
+            }
             onNext={getNextFlashcard}
             currentIndex={currentIndex}
             onCurrentIndexChange={setCurrentIndex}
@@ -96,7 +104,6 @@ function DeckDash() {
             onSetDeleteFlashcardModal={setDeleteFlashcardModal}
             flashcards={deckData.flashcards}
           />
-
           {deckData.flashcards.length > 1 &&
             currentIndex >= 0 &&
             currentIndex < deckData.flashcards.length - 1 && (

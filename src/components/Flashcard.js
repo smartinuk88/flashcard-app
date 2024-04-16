@@ -1,9 +1,9 @@
 import { faCheck, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useUser } from "../helpers/Context";
 import { Link } from "react-router-dom";
-import { Timestamp } from "firebase/firestore";
+import { motion } from "framer-motion";
 
 function Flashcard({
   flashcard,
@@ -25,11 +25,13 @@ function Flashcard({
     setDebounceTimer,
     handleFirebaseUpdateRef,
   } = useUser();
-  const [flipped, setFlipped] = useState(false);
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   const handleFlip = () => {
-    if (!isNextCard) {
-      setFlipped(!flipped);
+    if (!isNextCard && !isAnimating) {
+      setIsFlipped(!isFlipped);
+      setIsAnimating(true);
     }
   };
 
@@ -39,7 +41,9 @@ function Flashcard({
   }, [handleFirebaseUpdate]);
 
   const handleReview = useCallback(
-    (isCorrect, flashcardId, deckId) => {
+    (isCorrect, flashcardId, deckId, event) => {
+      event.stopPropagation();
+
       const now = new Date();
       const nowISOString = now.toISOString();
 
@@ -84,8 +88,6 @@ function Flashcard({
       const flashcardFromDeckData = userDeckData
         .find((deck) => deck.id === deckId)
         ?.flashcards.find((flashcard) => flashcard.id === flashcardId);
-
-      console.log(flashcardFromDeckData);
 
       const existingStrength = flashcardFromDeckData
         ? flashcardFromDeckData.strength
@@ -177,26 +179,46 @@ function Flashcard({
   return (
     <div
       onClick={handleFlip}
-      className={`flex flex-col justify-center items-center mb-4 border bg-white border-primary-blue w-72 h-96 rounded-lg shadow-md cursor-pointer text-2xl font-semibold transition duration-100 text-center ${
-        isNextCard ? "absolute top-0" : "relative z-10"
+      className={`flip-card flex flex-col justify-center items-center mb-4 w-72 h-96 rounded-lg cursor-pointer text-2xl font-semibold text-center ${
+        isNextCard ? "z-0 absolute top-2 right-1" : "z-10 relative"
       }`}
     >
-      <p>{!flipped || isNextCard ? flashcard.front : flashcard.back}</p>
-
-      {flipped && !isNextCard && (
-        <div className="absolute bottom-0 w-full flex justify-between p-4">
-          <FontAwesomeIcon
-            className="text-green-600 cursor-pointer"
-            icon={faCheck}
-            onClick={() => handleReview(true, flashcard.id, deckId)}
-          />
-          <FontAwesomeIcon
-            className="text-red-600 cursor-pointer"
-            icon={faXmark}
-            onClick={() => handleReview(false, flashcard.id, deckId)}
-          />
+      <motion.div
+        className="flip-card-inner w-[100%] h-[100%] shadow-md border border-primary-blue bg-white rounded-lg"
+        initial={false}
+        animate={{ rotateY: isFlipped ? 180 : 0 }}
+        transition={{ duration: 0.6, animationDirection: "normal" }}
+        onAnimationComplete={() => setIsAnimating(false)}
+      >
+        {/* Front face of the card */}
+        <div className="flip-card-front flex items-center justify-center w-[100%] h-[100%]">
+          <p className="text-xl font-semibold p-4">{flashcard.front}</p>
         </div>
-      )}
+
+        {/* Back face of the card */}
+        <div className="flip-card-back flex items-center justify-center w-[100%] h-[100%]">
+          <p className="text-xl font-semibold p-4">{flashcard.back}</p>
+
+          {!isNextCard && (
+            <div className="absolute bottom-0 w-full flex justify-between p-4">
+              <FontAwesomeIcon
+                className="text-green-600 cursor-pointer"
+                icon={faCheck}
+                onClick={(event) =>
+                  handleReview(true, flashcard.id, deckId, event)
+                }
+              />
+              <FontAwesomeIcon
+                className="text-red-600 cursor-pointer"
+                icon={faXmark}
+                onClick={(event) =>
+                  handleReview(false, flashcard.id, deckId, event)
+                }
+              />
+            </div>
+          )}
+        </div>
+      </motion.div>
     </div>
   );
 }
