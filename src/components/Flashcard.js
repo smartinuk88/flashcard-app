@@ -2,10 +2,16 @@ import { faCheck, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useCallback, useEffect, useState } from "react";
 import { useUser } from "../helpers/Context";
-import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
-function Flashcard({ flashcard, onNext, deckId, isNextCard = false }) {
+function Flashcard({
+  flashcard,
+  onNext,
+  deckId,
+  color,
+  nextColor,
+  isNextCard = false,
+}) {
   const {
     userData,
     setUserData,
@@ -31,7 +37,7 @@ function Flashcard({ flashcard, onNext, deckId, isNextCard = false }) {
   // Store the latest function in the ref
   useEffect(() => {
     handleFirebaseUpdateRef.current = handleFirebaseUpdate;
-  }, [handleFirebaseUpdate]);
+  }, [handleFirebaseUpdate, handleFirebaseUpdateRef]);
 
   const handleReview = useCallback(
     (isCorrect, flashcardId, deckId, event) => {
@@ -148,37 +154,41 @@ function Flashcard({ flashcard, onNext, deckId, isNextCard = false }) {
   return (
     <div
       onClick={handleFlip}
-      className={`flip-card flex flex-col justify-center items-center mb-4 w-72 h-96 rounded-lg cursor-pointer text-2xl font-semibold text-center ${
-        isNextCard ? "z-0 absolute top-2 right-1" : "z-10 relative"
+      className={`flip-card flex flex-col justify-center items-center mb-4 w-72 h-96 rounded-md cursor-pointer text-2xl text-white font-semibold text-center ${
+        isNextCard ? `z-0 absolute top-2 right-1` : `z-10 relative`
       }`}
     >
       <motion.div
-        className="flip-card-inner w-[100%] h-[100%] shadow-md border border-primary-blue bg-white rounded-lg"
+        className={`flip-card-inner w-[100%] h-[100%] shadow-md text-white rounded-lg`}
         initial={false}
         animate={{ rotateY: isFlipped ? 180 : 0 }}
         transition={{ duration: 0.6, animationDirection: "normal" }}
         onAnimationComplete={() => setIsAnimating(false)}
       >
         {/* Front face of the card */}
-        <div className="flip-card-front flex items-center justify-center w-[100%] h-[100%]">
+        <div
+          className={`flip-card-front rounded-md flex items-center justify-center w-[100%] h-[100%] bg-${color}`}
+        >
           <p className="text-xl font-semibold p-4">{flashcard.front}</p>
         </div>
 
         {/* Back face of the card */}
-        <div className="flip-card-back flex items-center justify-center w-[100%] h-[100%]">
+        <div
+          className={`flip-card-back rounded-md flex items-center justify-center w-[100%] h-[100%] bg-${color}`}
+        >
           <p className="text-xl font-semibold p-4">{flashcard.back}</p>
 
           {!isNextCard && (
             <div className="absolute bottom-0 w-full flex justify-between p-4">
               <FontAwesomeIcon
-                className="text-green-600 cursor-pointer"
+                className="cursor-pointer text-dark"
                 icon={faCheck}
                 onClick={(event) =>
                   handleReview(true, flashcard.id, deckId, event)
                 }
               />
               <FontAwesomeIcon
-                className="text-red-600 cursor-pointer"
+                className="cursor-pointer text-dark"
                 icon={faXmark}
                 onClick={(event) =>
                   handleReview(false, flashcard.id, deckId, event)

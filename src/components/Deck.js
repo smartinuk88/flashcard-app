@@ -1,6 +1,6 @@
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useUser } from "../helpers/Context";
 
@@ -9,22 +9,24 @@ function Deck({ deck }) {
   const [showModal, setShowModal] = useState(false);
 
   return (
-    <div className="relative bg-primary-blue rounded-xl p-4 h-52 w-full min-h-max hover:bg-secondary-blue transition duration-100">
+    <div
+      className={`relative bg-${deck.bgColor} rounded-xl p-4 h-52 w-full min-h-max hover:opacity-90 transition duration-100`}
+    >
       {showModal ? (
         <>
           <div className="flex flex-col h-full justify-between items-center py-4">
-            <p className="font-semibold text-center">
+            <p className="font-semibold text-center text-white">
               Are you sure you want to delete this deck?
             </p>
             <div className="flex space-x-4 items-center">
               <button
-                className="bg-green-500 p-2 rounded-lg"
+                className="bg-dark text-white hover:opacity-90 px-4 py-2 shadow-sm rounded-lg"
                 onClick={() => deleteUserDeck(deck.id)}
               >
                 Confirm
               </button>
               <button
-                className="bg-red-500 p-2 rounded-lg"
+                className="bg-light text-dark hover:opacity-90 px-4 py-2 shadow-sm rounded-lg"
                 onClick={() => setShowModal(false)}
               >
                 Cancel

@@ -18,7 +18,7 @@ function Header() {
       <div className="flex justify-between items-center px-6">
         <Link to={"/"}>
           <p className="text-3xl">
-            Flash<span className="font-bold text-primary-blue">Fluent</span>
+            Flash<span className="font-bold text-one">Fluent</span>
           </p>
         </Link>
 
@@ -36,15 +36,16 @@ function Header() {
           {Object.keys(pendingFlashcardUpdates).length ? (
             <FontAwesomeIcon
               onClick={() => handleFirebaseUpdate()}
-              className="cursor-pointer"
+              className="cursor-pointer text-three"
               icon={faFloppyDisk}
             />
           ) : null}
           <p>
-            <FontAwesomeIcon icon={faFire} /> {userData.reviewStreak}
+            <FontAwesomeIcon icon={faFire} className="text-two" />{" "}
+            {userData.reviewStreak}
           </p>
           <button
-            className="font-bold border rounded-full py-1 px-4"
+            className="font-bold border bg-dark hover:opacity-90 text-white shadow-sm rounded-md py-1 px-4"
             onClick={handleSignOut}
           >
             Sign Out

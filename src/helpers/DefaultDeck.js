@@ -2,6 +2,7 @@ export const defaultDeck = {
   title: "50 Most Common Spanish Verbs (Default Deck)",
   description:
     "Get started on your Spanish journey with the 50 most absolutely essential Spanish verbs",
+  bgColor: "two",
   flashcards: [
     {
       front: "ser",

@@ -19,6 +19,7 @@ function DeckDash() {
   const [editFlashcardModal, setEditFlashcardModal] = useState(false);
   const [deleteFlashcardModal, setDeleteFlashcardModal] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const colors = ["one", "two", "three"];
 
   useEffect(() => {
     if (!deck?.id) return; // Ensure there's a deck ID to subscribe to
@@ -34,7 +35,9 @@ function DeckDash() {
     });
 
     return () => unsubscribe(); // Clean up the subscription
-  }, [deck?.id, db, authUser.uid]); // Re-subscribe when deck.id changes
+  }, [deck?.id, authUser.uid]); // Re-subscribe when deck.id changes
+
+  const getColor = (index) => colors[index % colors.length];
 
   // Function to advance to the next flashcard
   const getNextFlashcard = () => {
@@ -50,10 +53,10 @@ function DeckDash() {
       <Header />
       <main className="flex flex-col justify-between items-center h-[calc(100vh-104px)] p-8">
         <div>
-          <h1 className="text-center text-2xl md:text-4xl font-bold mb-1">
+          <h1 className="text-center text-dark text-2xl md:text-4xl font-bold mb-1">
             {deckData.title}
           </h1>
-          <p className="text-center text-sm md:text-lg">
+          <p className="text-center text-dark text-sm md:text-lg">
             {deckData.description}
           </p>
         </div>
@@ -85,14 +88,14 @@ function DeckDash() {
         <div className="relative flex flex-col items-center">
           {/* No flashcards in deck condition */}
           {deckData.flashcards.length === 0 && (
-            <div className="relative flex flex-col justify-center items-center mb-4 border border-primary-blue w-72 h-96 rounded-lg shadow-md text-2xl font-semibold text-center">
+            <div className="relative flex flex-col justify-center items-center mb-4 border border-one w-72 h-96 rounded-lg shadow-md text-2xl font-semibold text-center">
               <p>No flashcards added</p>
             </div>
           )}
 
           {/* Review Session Finished Condition */}
           {currentIndex === -1 && (
-            <div className="relative flex flex-col justify-between items-center mb-4 border border-primary-blue w-72 h-96 rounded-lg shadow-md text-xl font-semibold text-center py-8">
+            <div className="relative flex flex-col justify-between items-center mb-4 border border-one w-72 h-96 rounded-lg shadow-md text-xl font-semibold text-center py-8">
               <p>Review Session Finished!</p>
               <div className="flex flex-col">
                 <button
@@ -126,6 +129,8 @@ function DeckDash() {
               onNext={getNextFlashcard}
               onCurrentIndexChange={setCurrentIndex}
               deckId={deckData?.id}
+              color={getColor(currentIndex)}
+              nextColor={getColor(currentIndex + 1)}
             />
           ) : null}
 
@@ -141,6 +146,7 @@ function DeckDash() {
               <Flashcard
                 flashcard={deckData.flashcards[currentIndex + 1]}
                 isNextCard={true}
+                color={getColor(currentIndex + 1)}
               />
             )}
         </div>

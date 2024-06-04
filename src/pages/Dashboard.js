@@ -9,9 +9,9 @@ function Dashboard() {
   if (loading || !authUser || !userData) return null;
 
   return (
-    <div className="bg-white">
+    <div>
       <Header />
-      <main className="mx-auto px-10 max-w-7xl my-2">
+      <main className="mx-auto px-10 max-w-7xl mt-2 mb-11">
         <UserStats />
         <DeckList />
       </main>

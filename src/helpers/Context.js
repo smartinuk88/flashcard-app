@@ -157,9 +157,7 @@ export const UserProvider = ({ children }) => {
         reviewStreak: 0,
       }));
       // Notify user they have lost their streak
-      setStreakLostMessage(
-        "You have lost your streak. Time to get back on the horse!"
-      );
+      setStreakLostMessage("You have lost your streak!");
       setTimeout(() => {
         setStreakLostMessage("");
       }, 5000);
@@ -314,7 +312,7 @@ export const UserProvider = ({ children }) => {
         return { success: true };
       }
     },
-    [db, authUser]
+    [authUser]
   );
 
   // Set up regular interval firebase update
@@ -361,7 +359,6 @@ export const UserProvider = ({ children }) => {
   }, [
     handleFirebaseUpdate,
     setLoading,
-    signOut,
     setAuthUser,
     setUserData,
     setUserDeckData,

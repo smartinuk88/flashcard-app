@@ -9,10 +9,15 @@ function AddDeck() {
 
   const addDeck = async (e) => {
     e.preventDefault();
+
+    const colors = ["one", "two", "three"];
+    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+
     const newDeck = {
       flashcards: [],
       description: newDeckDescription,
       title: newDeckTitle,
+      bgColor: randomColor,
     };
 
     addDeckToUser(newDeck);
@@ -39,21 +44,19 @@ function AddDeck() {
     <div>
       <button
         onClick={openAddDeckMenu}
-        className={`${
-          addDeckMenuDisplay === "block" && "disabled bg-gray-500"
-        } w-full p-3 text-lg border border-primary-blue mb-4 rounded-full shadow-sm hover:bg-secondary-blue hover:text-white hover:border-white transition duration-75`}
+        className={`w-full p-3 text-lg border bg-dark mb-4 rounded-md shadow-sm text-white transition duration-75`}
       >
-        Add Deck
+        {addDeckMenuDisplay === "block" ? "Hide Add Deck" : "Add Deck"}
       </button>
       <form
         style={{ display: addDeckMenuDisplay }}
-        className="p-10 bg-white shadow-sm m-4 border rounded-lg w-full mx-auto"
+        className="p-10 bg-one shadow-md m-4 mb-10 rounded-lg w-full mx-auto"
       >
         <div className="mb-6">
           <div className="mb-3">
             <label htmlFor="deck-title"></label>
             <input
-              className="w-full inline-block outline-none border border-primary-blue p-2 rounded-lg"
+              className="w-full inline-block outline-none shadow-sm p-2 rounded-md"
               required
               type="text"
               value={newDeckTitle}
@@ -64,7 +67,7 @@ function AddDeck() {
           <div>
             <label htmlFor="deck-description"></label>
             <input
-              className="w-full inline-block outline-none border border-primary-blue p-2 rounded-lg"
+              className="w-full inline-block outline-none shadow-sm p-2 rounded-md"
               required
               type="text"
               value={newDeckDescription}
@@ -73,15 +76,15 @@ function AddDeck() {
             />
           </div>
         </div>
-        <div className="flex space-x-2">
+        <div className="flex space-x-10">
           <button
-            className="p-2 bg-green-600 text-center w-full rounded-full"
+            className="p-2 bg-dark text-center text-white w-full hover:opacity-90 shadow-sm rounded-md"
             onClick={addDeck}
           >
             Confirm
           </button>
           <button
-            className="p-2 bg-red-600 text-center w-full rounded-full"
+            className="p-2 bg-light text-center text-dark w-full hover:opacity-90 shadow-sm rounded-md"
             onClick={cancelAddDeck}
           >
             Cancel

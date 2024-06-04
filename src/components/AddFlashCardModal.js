@@ -38,15 +38,19 @@ function AddFlashCardModal({ deck, onToggleFlashcardModal }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-primary-blue flex w-full justify-center items-center z-50">
-      <div className="text-center bg-white p-10 h-4/5 rounded-lg shadow-lg w-4/5">
-        <h2 className="text-2xl font-bold mb-4">Add New Flashcard</h2>
+    <div className="fixed inset-0 bg-white flex w-full justify-center items-center z-50">
+      <div className="text-center bg-one p-10 h-4/5 rounded-lg shadow-lg w-4/5">
+        <h2 className="text-2xl font-bold mb-4 text-white">
+          Add New Flashcard
+        </h2>
 
         <form>
           <div className="mb-6">
-            <label htmlFor="card-front">Card Front</label>
+            <label htmlFor="card-front" className="text-white">
+              Card Front
+            </label>
             <input
-              className="w-full inline-block outline-none border border-primary-blue p-2 rounded-lg"
+              className="w-full inline-block outline-none shadow-sm p-2 rounded-md"
               required
               type="text"
               value={cardFront}
@@ -55,9 +59,11 @@ function AddFlashCardModal({ deck, onToggleFlashcardModal }) {
             />
           </div>
           <div className="mb-12">
-            <label htmlFor="card-back">Card Back</label>
+            <label htmlFor="card-back" className="text-white">
+              Card Back
+            </label>
             <input
-              className="w-full inline-block outline-none border border-primary-blue p-2 rounded-lg"
+              className="w-full inline-block outline-none border border-one p-2 rounded-lg"
               required
               type="text"
               value={cardBack}
@@ -71,13 +77,13 @@ function AddFlashCardModal({ deck, onToggleFlashcardModal }) {
           <div className="flex justify-center space-x-4">
             <button
               onClick={addFlashcard}
-              className="mt-4 py-2 px-4 shadow-sm bg-green-500 text-white rounded hover:bg-green-700 transition duration-300 ease-in-out"
+              className="mt-4 py-2 px-4 shadow-sm bg-dark text-white rounded-md hover:opacity-90 transition duration-300 ease-in-out"
             >
               Add Card
             </button>
             <button
               onClick={() => onToggleFlashcardModal(false)}
-              className="mt-4 py-2 px-4 shadow-sm bg-red-500 text-white rounded hover:bg-red-700 transition duration-300 ease-in-out"
+              className="mt-4 py-2 px-4 shadow-sm bg-light text-dark rounded-md hover:opacity-90 transition duration-300 ease-in-out"
             >
               Close
             </button>

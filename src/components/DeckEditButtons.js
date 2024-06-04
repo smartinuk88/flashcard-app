@@ -15,7 +15,7 @@ function DeckEditButtons({
     <div className="absolute flex flex-col justify-between items-center space-y-8 top-0 -left-10">
       <FontAwesomeIcon
         onClick={() => onSetAddFlashcardModal(true)}
-        className="cursor-pointer text-2xl"
+        className="cursor-pointer text-2xl text-dark"
         icon={faPlus}
       />
 
@@ -23,12 +23,12 @@ function DeckEditButtons({
         <>
           <FontAwesomeIcon
             onClick={() => onSetEditFlashcardModal(true)}
-            className="cursor-pointer text-2xl"
+            className="cursor-pointer text-2xl text-dark"
             icon={faPenToSquare}
           />
           <FontAwesomeIcon
             onClick={() => onSetDeleteFlashcardModal(true)}
-            className="cursor-pointer text-2xl"
+            className="cursor-pointer text-2xl text-dark"
             icon={faTrash}
           />
         </>
