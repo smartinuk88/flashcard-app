@@ -34,7 +34,7 @@ function DeleteFlashcardModal({ deck, onToggleFlashcardModal, flashcard }) {
           <p>Are you sure?</p>
         </div>
 
-        <p>{message}</p>
+        <p className="h-10">{message}</p>
 
         <div className="flex justify-center space-x-4">
           <button

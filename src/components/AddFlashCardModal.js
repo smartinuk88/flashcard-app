@@ -72,7 +72,7 @@ function AddFlashCardModal({ deck, onToggleFlashcardModal }) {
             />
           </div>
 
-          <p>{message}</p>
+          <p className="h-10">{message}</p>
 
           <div className="flex justify-center space-x-4">
             <button

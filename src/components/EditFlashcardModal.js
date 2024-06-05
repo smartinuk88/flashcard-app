@@ -67,7 +67,7 @@ function EditFlashcardModal({ deck, onToggleFlashcardModal, flashcard }) {
             />
           </div>
 
-          <p>{message}</p>
+          <p className="h-10">{message}</p>
 
           <div className="flex justify-center space-x-4">
             <button
