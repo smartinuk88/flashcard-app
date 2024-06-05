@@ -38,7 +38,9 @@ function Deck({ deck }) {
         <>
           <Link to={`decks/${deck.id}`} state={deck}>
             <div className="flex flex-col cursor-pointer overflow-hidden items-start justify-start space-y-4 h-4/5">
-              <h3 className="text-lg font-semibold text-white">{deck.title}</h3>
+              <h3 className="text-lg font-semibold text-white break-words">
+                {deck.title}
+              </h3>
               <p className="text-sm">
                 {deck.flashcards ? deck.flashcards.length : 0}{" "}
                 {deck.flashcards.length === 1 ? "card" : "cards"}
