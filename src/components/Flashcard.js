@@ -4,14 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useUser } from "../helpers/Context";
 import { motion } from "framer-motion";
 
-function Flashcard({
-  flashcard,
-  onNext,
-  deckId,
-  color,
-  nextColor,
-  isNextCard = false,
-}) {
+function Flashcard({ flashcard, onNext, deckId, color, isNextCard = false }) {
   const {
     userData,
     setUserData,
@@ -20,6 +13,7 @@ function Flashcard({
     pendingFlashcardUpdates,
     setPendingFlashcardUpdates,
     handleFirebaseUpdate,
+    setStreakLostAcknowledged,
     debounceTimer,
     setDebounceTimer,
     handleFirebaseUpdateRef,
@@ -42,6 +36,8 @@ function Flashcard({
   const handleReview = useCallback(
     (isCorrect, flashcardId, deckId, event) => {
       event.stopPropagation();
+      // Reset acknowledgement that ensures user only notified of lost streak once.
+      setStreakLostAcknowledged(false);
 
       const now = new Date();
       const nowISOString = now.toISOString();
@@ -148,7 +144,13 @@ function Flashcard({
       }, 15000); // 15 seconds debounce
       setDebounceTimer(newDebounceTimer);
     },
-    [debounceTimer, setDebounceTimer]
+    [
+      userData,
+      userDeckData,
+      pendingFlashcardUpdates,
+      debounceTimer,
+      setDebounceTimer,
+    ]
   );
 
   return (
@@ -181,14 +183,14 @@ function Flashcard({
           {!isNextCard && (
             <div className="absolute bottom-0 w-full flex justify-between p-4">
               <FontAwesomeIcon
-                className="cursor-pointer text-dark"
+                className="cursor-pointer text-green-200"
                 icon={faCheck}
                 onClick={(event) =>
                   handleReview(true, flashcard.id, deckId, event)
                 }
               />
               <FontAwesomeIcon
-                className="cursor-pointer text-dark"
+                className="cursor-pointer text-red-200"
                 icon={faXmark}
                 onClick={(event) =>
                   handleReview(false, flashcard.id, deckId, event)

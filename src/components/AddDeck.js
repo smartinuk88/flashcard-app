@@ -60,6 +60,7 @@ function AddDeck() {
               required
               type="text"
               value={newDeckTitle}
+              maxLength={60}
               placeholder="Deck Title"
               onChange={(e) => setNewDeckTitle(e.target.value)}
             />

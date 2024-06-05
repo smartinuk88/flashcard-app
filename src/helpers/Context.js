@@ -34,6 +34,7 @@ export const UserProvider = ({ children }) => {
   const [pendingFlashcardUpdates, setPendingFlashcardUpdates] = useState({});
   const [loading, setLoading] = useState(true);
   const [streakLostMessage, setStreakLostMessage] = useState("");
+  const [streakLostAcknowledged, setStreakLostAcknowledged] = useState(true);
   const [dataSyncMessage, setDataSyncMessage] = useState({});
   const [debounceTimer, setDebounceTimer] = useState(null);
   const [intervalTimer, setIntervalTimer] = useState(null);
@@ -136,42 +137,44 @@ export const UserProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    const now = new Date();
+    const checkStreak = () => {
+      const now = new Date();
 
-    // If userData.lastReviewed is a Firestore Timestamp, convert it to a Date object
-    const lastReviewDate = userData?.lastReviewed?.toDate
-      ? userData.lastReviewed.toDate()
-      : new Date(userData?.lastReviewed);
-    const oneDay = 24 * 60 * 60 * 1000; // milliseconds in one day
+      // If userData.lastReviewed is a Firestore Timestamp, convert it to a Date object
+      const lastReviewDate = userData?.lastReviewed?.toDate
+        ? userData.lastReviewed.toDate()
+        : new Date(userData?.lastReviewed);
+      const oneDay = 24 * 60 * 60 * 1000; // milliseconds in one day
 
-    // If lastReviewDate is not set or if more than 24 hours have passed since the last review
-    if (
-      userData?.reviewStreak > 0 &&
-      (!lastReviewDate || now - lastReviewDate > oneDay)
-    ) {
-      console.log(
-        "More than 24 hours have passed since last review. Resetting streak."
-      );
-      setUserData((prevUserData) => ({
-        ...prevUserData,
-        reviewStreak: 0,
-      }));
-      // Notify user they have lost their streak
-      setStreakLostMessage("You have lost your streak!");
-      setTimeout(() => {
-        setStreakLostMessage("");
-      }, 5000);
-    }
+      // If lastReviewDate is not set or if more than 24 hours have passed since the last review
+      if (
+        userData?.reviewStreak > 0 &&
+        (!lastReviewDate || now - lastReviewDate > oneDay) &&
+        !streakLostAcknowledged
+      ) {
+        console.log(
+          "More than 24 hours have passed since last review. Resetting streak."
+        );
+        setUserData((prevUserData) => ({
+          ...prevUserData,
+          reviewStreak: 0,
+        }));
+        // Notify user they have lost their streak
+        setStreakLostMessage("You have lost your streak!");
+        setStreakLostAcknowledged(true);
+        setTimeout(() => {
+          setStreakLostMessage("");
+        }, 5000);
+      }
+    };
 
+    checkStreak();
     // Set up the interval to run the check every hour
-    const intervalId = setInterval(() => {
-      // Re-run the same check as above inside this interval
-      // ...
-    }, 3600000); // 3600000 ms = 1 hour
+    const intervalId = setInterval(checkStreak, 3600000); // 3600000 ms = 1 hour
 
     // Cleanup function to clear the interval when the component unmounts
     return () => clearInterval(intervalId);
-  }, [userData]);
+  }, [userData, setUserData, streakLostAcknowledged]);
 
   // Store the pending updates in a ref so that it doesn't trigger effects
   const pendingUpdatesRef = useRef(pendingFlashcardUpdates);
@@ -290,7 +293,7 @@ export const UserProvider = ({ children }) => {
           // setDataSyncMessage
           setDataSyncMessage({
             success: true,
-            message: "Data synced successfully",
+            message: "Sync successful",
           });
           setTimeout(() => {
             setDataSyncMessage({});
@@ -300,7 +303,7 @@ export const UserProvider = ({ children }) => {
           console.error("Error updating user session data:", error);
           setDataSyncMessage({
             success: false,
-            message: `Data sync error: ${error.message}`,
+            message: `Sync error: ${error.message}`,
           });
           setTimeout(() => {
             setDataSyncMessage({});
@@ -454,12 +457,14 @@ export const UserProvider = ({ children }) => {
         flashcards: updatedFlashcards,
       });
 
+      console.log("Before update", userDeckData);
       // Update local state: Find the deck to update and add the new flashcard to its 'flashcards' array
       setUserDeckData((prevUserDeckData) =>
         prevUserDeckData.map((d) =>
           d.id === deck.id ? { ...d, flashcards: updatedFlashcards } : d
         )
       );
+      console.log("After update", userDeckData);
 
       return { success: true }; // Indicate success
     } catch (error) {
@@ -527,6 +532,7 @@ export const UserProvider = ({ children }) => {
         deleteFlashcardInUserDeck,
         handleFirebaseUpdate,
         streakLostMessage,
+        setStreakLostAcknowledged,
         dataSyncMessage,
         debounceTimer,
         setDebounceTimer,

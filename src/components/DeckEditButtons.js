@@ -10,6 +10,7 @@ function DeckEditButtons({
   onSetEditFlashcardModal,
   onSetDeleteFlashcardModal,
   flashcards,
+  currentIndex,
 }) {
   return (
     <div className="absolute flex flex-col justify-between items-center space-y-8 top-0 -left-10">
@@ -19,7 +20,7 @@ function DeckEditButtons({
         icon={faPlus}
       />
 
-      {flashcards.length > 0 && (
+      {flashcards.length > 0 && currentIndex !== -1 && (
         <>
           <FontAwesomeIcon
             onClick={() => onSetEditFlashcardModal(true)}

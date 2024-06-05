@@ -24,8 +24,8 @@ function Header() {
 
         <div>
           <p
-            className={`text-center font-semibold ${
-              dataSyncMessage.success ? "text-green-500" : "text-red-500"
+            className={`text-center text-xs font-semibold ${
+              dataSyncMessage.success ? "text-green-700" : "text-red-700"
             }`}
           >
             {dataSyncMessage.message}
@@ -45,14 +45,14 @@ function Header() {
             {userData.reviewStreak}
           </p>
           <button
-            className="font-bold border bg-dark hover:opacity-90 text-white shadow-sm rounded-md py-1 px-4"
+            className="font-bold border text-sm md:text-base bg-dark hover:opacity-90 text-white shadow-sm rounded-md py-1 px-4"
             onClick={handleSignOut}
           >
             Sign Out
           </button>
         </div>
       </div>
-      <p className="text-center font-semibold text-white bg-red-500">
+      <p className="text-center font-semibold text-white bg-red-700">
         {streakLostMessage}
       </p>
     </header>

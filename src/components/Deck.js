@@ -10,7 +10,7 @@ function Deck({ deck }) {
 
   return (
     <div
-      className={`relative bg-${deck.bgColor} rounded-xl p-4 h-52 w-full min-h-max hover:opacity-90 transition duration-100`}
+      className={`relative bg-${deck.bgColor} rounded-md aspect-square p-4 h-52 w-full min-h-max hover:opacity-90 transition duration-100`}
     >
       {showModal ? (
         <>
@@ -37,10 +37,11 @@ function Deck({ deck }) {
       ) : (
         <>
           <Link to={`decks/${deck.id}`} state={deck}>
-            <div className="flex flex-col cursor-pointer items-start justify-start space-y-4 h-4/5">
+            <div className="flex flex-col cursor-pointer overflow-hidden items-start justify-start space-y-4 h-4/5">
               <h3 className="text-lg font-semibold text-white">{deck.title}</h3>
               <p className="text-sm">
-                {deck.flashcards ? deck.flashcards.length : 0} cards
+                {deck.flashcards ? deck.flashcards.length : 0}{" "}
+                {deck.flashcards.length === 1 ? "card" : "cards"}
               </p>
             </div>
           </Link>
