@@ -65,6 +65,7 @@ export const UserProvider = ({ children }) => {
 
       // Create decks subcollection under user doc and initialise with default deck
       const decksCollectionRef = collection(db, "users", user.uid, "decks");
+
       await addDoc(decksCollectionRef, { ...defaultDeck });
       console.log("Default deck added:", defaultDeck);
 
@@ -139,16 +140,13 @@ export const UserProvider = ({ children }) => {
 
   useEffect(() => {
     const checkStreak = async () => {
-      console.log("Checking streak");
-      console.log("review streak: ", userData?.reviewStreak);
-      console.log("streak acknowledged?: ", userData?.streakLostAcknowledged);
       const now = new Date();
 
       // If userData.lastReviewed is a Firestore Timestamp, convert it to a Date object
       const lastReviewDate = userData?.lastReviewed?.toDate
         ? userData.lastReviewed.toDate()
         : new Date(userData?.lastReviewed);
-      const oneDay = 60 * 1000; // milliseconds in one day
+      const oneDay = 24 * 60 * 60 * 1000; // milliseconds in one day
 
       // If lastReviewDate is not set or if more than 24 hours have passed since the last review
       if (
@@ -176,22 +174,12 @@ export const UserProvider = ({ children }) => {
             setStreakLostMessage("");
           }, 3000);
         }
-      } else if (
-        userData?.reviewStreak > 0 &&
-        userData?.streakLostAcknowledged
-      ) {
-        const updatedUserData = {
-          ...userData,
-          streakLostAcknowledged: false, // Reset this to allow future acknowledgements
-        };
-        console.log("Resetting acknowledgement");
-        await handleFirebaseUpdate({}, updatedUserData);
       }
     };
 
     checkStreak();
     // Set up the interval to run the check every hour
-    const intervalId = setInterval(checkStreak, 10000); // 3600000 ms = 1 hour
+    const intervalId = setInterval(checkStreak, 3600000); // 3600000 ms = 1 hour
 
     // Cleanup function to clear the interval when the component unmounts
     return () => clearInterval(intervalId);
@@ -253,7 +241,6 @@ export const UserProvider = ({ children }) => {
           const batch = writeBatch(db);
 
           if (hasUserDataUpdates) {
-            console.log("updating User doc: ", userDataUpdates);
             // Update user document with overall review stats
             const userRef = doc(db, "users", user.uid);
 
@@ -270,13 +257,6 @@ export const UserProvider = ({ children }) => {
               lastReviewedTimestamp = userDataUpdates.lastReviewed;
             }
 
-            console.log("Updating user document with:", {
-              cardsReviewed: userDataUpdates.cardsReviewed,
-              reviewStreak: userDataUpdates.reviewStreak,
-              lastReviewed: lastReviewedTimestamp,
-              streakLostAcknowledged: userDataUpdates.streakLostAcknowledged,
-            });
-
             batch.update(userRef, {
               cardsReviewed: userDataUpdates.cardsReviewed,
               reviewStreak: userDataUpdates.reviewStreak,
@@ -291,6 +271,10 @@ export const UserProvider = ({ children }) => {
             // Convert ISO strings of flashcards lastReviewed property
             const updatedFlashcardUpdates =
               convertLastReviewedToTimestamp(flashcardUpdates);
+            console.log(
+              "flashcard updates to happen: ",
+              updatedFlashcardUpdates
+            );
 
             for (const [deckId, updates] of Object.entries(
               updatedFlashcardUpdates
@@ -303,6 +287,12 @@ export const UserProvider = ({ children }) => {
                 // Clone the existing flashcards array from the snapshot data
                 let updatedFlashcards = [...deckData.flashcards];
 
+                console.log(
+                  "Updated flashcards IDs:",
+                  updatedFlashcards.map((f) => f.id)
+                );
+                console.log("Update data IDs:", Object.keys(updates));
+
                 // Update each flashcard in the cloned array based on the pending updates
                 for (const [flashcardId, updateData] of Object.entries(
                   updates
@@ -310,6 +300,7 @@ export const UserProvider = ({ children }) => {
                   const index = updatedFlashcards.findIndex(
                     (f) => f.id === flashcardId
                   );
+
                   if (index !== -1) {
                     updatedFlashcards[index] = {
                       ...updatedFlashcards[index],

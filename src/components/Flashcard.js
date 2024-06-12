@@ -78,6 +78,7 @@ function Flashcard({ flashcard, onNext, deckId, color, isNextCard = false }) {
 
       // Calculate new strength level of the flashcard
       const strengthChange = isCorrect ? 1 : -1;
+
       const flashcardFromDeckData = userDeckData
         .find((deck) => deck.id === deckId)
         ?.flashcards.find((flashcard) => flashcard.id === flashcardId);
@@ -109,6 +110,8 @@ function Flashcard({ flashcard, onNext, deckId, color, isNextCard = false }) {
         return deck;
       });
 
+      console.log("Updated deck data: ", updatedDeckData);
+
       // Update pendingFlashcardUpdate state
       const updatedFlashcardUpdates = {
         ...pendingFlashcardUpdates,
@@ -129,6 +132,7 @@ function Flashcard({ flashcard, onNext, deckId, color, isNextCard = false }) {
         userData: updatedUserData,
         flashcardUpdates: updatedFlashcardUpdates,
       };
+
       localStorage.setItem("pendingUpdates", JSON.stringify(pendingUpdates));
       console.log("Local storage items set");
 

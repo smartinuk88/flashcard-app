@@ -356,5 +356,5 @@ export const defaultDeck = {
       lastReviewed: null,
       strength: 0,
     },
-  ].map((card, index) => ({ ...card, id: index })),
+  ],
 };
