@@ -34,7 +34,6 @@ export const UserProvider = ({ children }) => {
   const [pendingFlashcardUpdates, setPendingFlashcardUpdates] = useState({});
   const [loading, setLoading] = useState(true);
   const [streakLostMessage, setStreakLostMessage] = useState("");
-  const [streakLostAcknowledged, setStreakLostAcknowledged] = useState(true);
   const [dataSyncMessage, setDataSyncMessage] = useState({});
   const [debounceTimer, setDebounceTimer] = useState(null);
   const [intervalTimer, setIntervalTimer] = useState(null);
@@ -61,11 +60,13 @@ export const UserProvider = ({ children }) => {
         lastReviewed: null,
         cardsReviewed: 0,
         reviewStreak: 0,
+        streakLostAcknowledged: false,
       });
 
       // Create decks subcollection under user doc and initialise with default deck
       const decksCollectionRef = collection(db, "users", user.uid, "decks");
       await addDoc(decksCollectionRef, { ...defaultDeck });
+      console.log("Default deck added:", defaultDeck);
 
       // Re-fetch the user document and decks collection after creating
       userSnap = await getDoc(userRef);
@@ -137,44 +138,64 @@ export const UserProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    const checkStreak = () => {
+    const checkStreak = async () => {
+      console.log("Checking streak");
+      console.log("review streak: ", userData?.reviewStreak);
+      console.log("streak acknowledged?: ", userData?.streakLostAcknowledged);
       const now = new Date();
 
       // If userData.lastReviewed is a Firestore Timestamp, convert it to a Date object
       const lastReviewDate = userData?.lastReviewed?.toDate
         ? userData.lastReviewed.toDate()
         : new Date(userData?.lastReviewed);
-      const oneDay = 24 * 60 * 60 * 1000; // milliseconds in one day
+      const oneDay = 60 * 1000; // milliseconds in one day
 
       // If lastReviewDate is not set or if more than 24 hours have passed since the last review
       if (
         userData?.reviewStreak > 0 &&
         (!lastReviewDate || now - lastReviewDate > oneDay) &&
-        !streakLostAcknowledged
+        !userData?.streakLostAcknowledged
       ) {
         console.log(
           "More than 24 hours have passed since last review. Resetting streak."
         );
-        setUserData((prevUserData) => ({
-          ...prevUserData,
+
+        const updatedUserData = {
+          ...userData,
           reviewStreak: 0,
-        }));
-        // Notify user they have lost their streak
-        setStreakLostMessage("You have lost your streak!");
-        setStreakLostAcknowledged(true);
-        setTimeout(() => {
-          setStreakLostMessage("");
-        }, 5000);
+          streakLostAcknowledged: true, // Set this to true to acknowledge the streak loss
+        };
+
+        // Call handleFirebaseUpdate to sync the updated streak and lastReviewed
+        const updateResult = await handleFirebaseUpdate({}, updatedUserData);
+
+        if (updateResult.success) {
+          // Notify user they have lost their streak
+          setStreakLostMessage("You have lost your streak!");
+          setTimeout(() => {
+            setStreakLostMessage("");
+          }, 3000);
+        }
+      } else if (
+        userData?.reviewStreak > 0 &&
+        userData?.streakLostAcknowledged
+      ) {
+        const updatedUserData = {
+          ...userData,
+          streakLostAcknowledged: false, // Reset this to allow future acknowledgements
+        };
+        console.log("Resetting acknowledgement");
+        await handleFirebaseUpdate({}, updatedUserData);
       }
     };
 
     checkStreak();
     // Set up the interval to run the check every hour
-    const intervalId = setInterval(checkStreak, 3600000); // 3600000 ms = 1 hour
+    const intervalId = setInterval(checkStreak, 10000); // 3600000 ms = 1 hour
 
     // Cleanup function to clear the interval when the component unmounts
     return () => clearInterval(intervalId);
-  }, [userData, setUserData, streakLostAcknowledged]);
+  }, [userData, setUserData]);
 
   // Store the pending updates in a ref so that it doesn't trigger effects
   const pendingUpdatesRef = useRef(pendingFlashcardUpdates);
@@ -217,72 +238,108 @@ export const UserProvider = ({ children }) => {
       user = authUser
     ) => {
       console.log("Checking pendingFlashcardUpdates...");
-      if (Object.keys(flashcardUpdates).length > 0) {
+
+      // Check if there are any flashcard updates or user data updates
+      const hasFlashcardUpdates = Object.keys(flashcardUpdates).length > 0;
+      const hasUserDataUpdates =
+        userDataUpdates &&
+        (userDataUpdates.reviewStreak !== undefined ||
+          userDataUpdates.lastReviewed !== undefined);
+
+      if (hasFlashcardUpdates || hasUserDataUpdates) {
         console.log("Pending updates found, updating firebase...");
         try {
           // Begin a batch to perform all updates together
           const batch = writeBatch(db);
 
-          // Update user document with overall review stats
-          const userRef = doc(db, "users", user.uid);
+          if (hasUserDataUpdates) {
+            console.log("updating User doc: ", userDataUpdates);
+            // Update user document with overall review stats
+            const userRef = doc(db, "users", user.uid);
 
-          // Convert ISO string for userData back to Firestore Timestamp
-          let lastReviewedTimestamp;
-          if (typeof userDataUpdates.lastReviewed === "string") {
-            // If it's a string, convert it to a Date object first
-            const userLastReviewedDate = new Date(userDataUpdates.lastReviewed);
-            lastReviewedTimestamp = Timestamp.fromDate(userLastReviewedDate);
-          } else {
-            // Assume it's already a Timestamp
-            lastReviewedTimestamp = userDataUpdates.lastReviewed;
+            // Convert ISO string for userData back to Firestore Timestamp
+            let lastReviewedTimestamp;
+            if (typeof userDataUpdates.lastReviewed === "string") {
+              // If it's a string, convert it to a Date object first
+              const userLastReviewedDate = new Date(
+                userDataUpdates.lastReviewed
+              );
+              lastReviewedTimestamp = Timestamp.fromDate(userLastReviewedDate);
+            } else {
+              // Assume it's already a Timestamp
+              lastReviewedTimestamp = userDataUpdates.lastReviewed;
+            }
+
+            console.log("Updating user document with:", {
+              cardsReviewed: userDataUpdates.cardsReviewed,
+              reviewStreak: userDataUpdates.reviewStreak,
+              lastReviewed: lastReviewedTimestamp,
+              streakLostAcknowledged: userDataUpdates.streakLostAcknowledged,
+            });
+
+            batch.update(userRef, {
+              cardsReviewed: userDataUpdates.cardsReviewed,
+              reviewStreak: userDataUpdates.reviewStreak,
+              lastReviewed: lastReviewedTimestamp,
+              streakLostAcknowledged: userDataUpdates.streakLostAcknowledged,
+            });
           }
 
-          batch.update(userRef, {
-            cardsReviewed: userDataUpdates.cardsReviewed,
-            reviewStreak: userDataUpdates.reviewStreak,
-            lastReviewed: lastReviewedTimestamp,
-          });
+          if (hasFlashcardUpdates) {
+            // Update relevant deck documents with changes to flashcard data
 
-          // Update relevant deck documents with changes to flashcard data
+            // Convert ISO strings of flashcards lastReviewed property
+            const updatedFlashcardUpdates =
+              convertLastReviewedToTimestamp(flashcardUpdates);
 
-          // Convert ISO strings of flashcards lastReviewed property
-          const updatedFlashcardUpdates =
-            convertLastReviewedToTimestamp(flashcardUpdates);
+            for (const [deckId, updates] of Object.entries(
+              updatedFlashcardUpdates
+            )) {
+              const deckRef = doc(db, "users", user.uid, "decks", deckId);
+              const deckSnap = await getDoc(deckRef);
 
-          for (const [deckId, updates] of Object.entries(
-            updatedFlashcardUpdates
-          )) {
-            const deckRef = doc(db, "users", user.uid, "decks", deckId);
-            const deckSnap = await getDoc(deckRef);
+              if (deckSnap.exists()) {
+                const deckData = deckSnap.data();
+                // Clone the existing flashcards array from the snapshot data
+                let updatedFlashcards = [...deckData.flashcards];
 
-            if (deckSnap.exists()) {
-              const deckData = deckSnap.data();
-              // Clone the existing flashcards array from the snapshot data
-              let updatedFlashcards = [...deckData.flashcards];
-
-              // Update each flashcard in the cloned array based on the pending updates
-              for (const [flashcardId, updateData] of Object.entries(updates)) {
-                const index = updatedFlashcards.findIndex(
-                  (f) => f.id === flashcardId
-                );
-                if (index !== -1) {
-                  updatedFlashcards[index] = {
-                    ...updatedFlashcards[index],
-                    ...updateData,
-                  };
+                // Update each flashcard in the cloned array based on the pending updates
+                for (const [flashcardId, updateData] of Object.entries(
+                  updates
+                )) {
+                  const index = updatedFlashcards.findIndex(
+                    (f) => f.id === flashcardId
+                  );
+                  if (index !== -1) {
+                    updatedFlashcards[index] = {
+                      ...updatedFlashcards[index],
+                      ...updateData,
+                    };
+                  }
                 }
-              }
 
-              // Set the updated array back to the deck document
-              batch.update(deckRef, { flashcards: updatedFlashcards });
+                // Set the updated array back to the deck document
+                batch.update(deckRef, { flashcards: updatedFlashcards });
+              }
             }
           }
 
           // Commit the batch
-          await batch.commit();
+          try {
+            await batch.commit();
+            console.log("Batch commit successful");
+          } catch (error) {
+            console.error("Batch commit failed:", error);
+          }
 
           // Clear the ref
           pendingUpdatesRef.current = {};
+
+          // Synchronize local userData state
+          setUserData((prevUserData) => ({
+            ...prevUserData,
+            ...userDataUpdates,
+          }));
 
           // Clear the pending updates state itself
           setPendingFlashcardUpdates({});
@@ -320,9 +377,15 @@ export const UserProvider = ({ children }) => {
 
   // Set up regular interval firebase update
   useEffect(() => {
-    const newIntervalTimer = setInterval(() => {
-      handleFirebaseUpdateRef.current();
-    }, 90000); // 90 second interval
+    const executeUpdate = () => {
+      if (typeof handleFirebaseUpdateRef.current === "function") {
+        handleFirebaseUpdateRef.current();
+      } else {
+        console.warn("handleFirebaseUpdate is not a function");
+      }
+    };
+
+    const newIntervalTimer = setInterval(executeUpdate, 90000); // 90 second interval
     setIntervalTimer(newIntervalTimer);
 
     // Cleanup function to clear timers
@@ -532,7 +595,6 @@ export const UserProvider = ({ children }) => {
         deleteFlashcardInUserDeck,
         handleFirebaseUpdate,
         streakLostMessage,
-        setStreakLostAcknowledged,
         dataSyncMessage,
         debounceTimer,
         setDebounceTimer,

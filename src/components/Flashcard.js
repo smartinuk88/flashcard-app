@@ -13,7 +13,6 @@ function Flashcard({ flashcard, onNext, deckId, color, isNextCard = false }) {
     pendingFlashcardUpdates,
     setPendingFlashcardUpdates,
     handleFirebaseUpdate,
-    setStreakLostAcknowledged,
     debounceTimer,
     setDebounceTimer,
     handleFirebaseUpdateRef,
@@ -36,8 +35,6 @@ function Flashcard({ flashcard, onNext, deckId, color, isNextCard = false }) {
   const handleReview = useCallback(
     (isCorrect, flashcardId, deckId, event) => {
       event.stopPropagation();
-      // Reset acknowledgement that ensures user only notified of lost streak once.
-      setStreakLostAcknowledged(false);
 
       const now = new Date();
       const nowISOString = now.toISOString();
@@ -74,6 +71,7 @@ function Flashcard({ flashcard, onNext, deckId, color, isNextCard = false }) {
           : userData.reviewStreak,
         cardsReviewed: userData.cardsReviewed + 1,
         lastReviewed: nowISOString,
+        streakLostAcknowledged: false,
       };
 
       setUserData(updatedUserData);

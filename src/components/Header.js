@@ -52,7 +52,7 @@ function Header() {
           </button>
         </div>
       </div>
-      <p className="text-center font-semibold text-white bg-red-700">
+      <p className="text-center font-semibold mb-2 text-white bg-red-700">
         {streakLostMessage}
       </p>
     </header>
