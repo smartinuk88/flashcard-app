@@ -225,103 +225,87 @@ export const UserProvider = ({ children }) => {
       userDataUpdates = userDataRef.current,
       user = authUser
     ) => {
-      console.log("Checking pendingFlashcardUpdates...");
+      console.log("Checking pending updates...");
 
       // Check if there are any flashcard updates or user data updates
       const hasFlashcardUpdates = Object.keys(flashcardUpdates).length > 0;
-      const hasUserDataUpdates =
-        userDataUpdates &&
-        (userDataUpdates.reviewStreak !== undefined ||
-          userDataUpdates.lastReviewed !== undefined);
 
-      if (hasFlashcardUpdates || hasUserDataUpdates) {
-        console.log("Pending updates found, updating firebase...");
+      const hasUserDataChanged = (key) =>
+        userDataUpdates[key] !== undefined &&
+        userDataUpdates[key] !== userDataRef.current?.[key];
+
+      // This is for the scenario where only streak data needs updating
+      const hasStreakOrUserDataUpdates =
+        !hasFlashcardUpdates &&
+        (hasUserDataChanged("reviewStreak") ||
+          hasUserDataChanged("streakLostAcknowledged"));
+
+      const userRef = doc(db, "users", user.uid);
+
+      if (hasFlashcardUpdates) {
+        console.log(
+          "Pending flashcard and related user data updates found, updating firebase..."
+        );
         try {
           // Begin a batch to perform all updates together
           const batch = writeBatch(db);
 
-          if (hasUserDataUpdates) {
-            // Update user document with overall review stats
-            const userRef = doc(db, "users", user.uid);
-
-            // Convert ISO string for userData back to Firestore Timestamp
-            let lastReviewedTimestamp;
-            if (typeof userDataUpdates.lastReviewed === "string") {
-              // If it's a string, convert it to a Date object first
-              const userLastReviewedDate = new Date(
-                userDataUpdates.lastReviewed
-              );
-              lastReviewedTimestamp = Timestamp.fromDate(userLastReviewedDate);
-            } else {
-              // Assume it's already a Timestamp
-              lastReviewedTimestamp = userDataUpdates.lastReviewed;
-            }
-
-            batch.update(userRef, {
-              cardsReviewed: userDataUpdates.cardsReviewed,
-              reviewStreak: userDataUpdates.reviewStreak,
-              lastReviewed: lastReviewedTimestamp,
-              streakLostAcknowledged: userDataUpdates.streakLostAcknowledged,
-            });
+          // Update user document with overall review stats
+          // Convert ISO string for userData back to Firestore Timestamp
+          let lastReviewedTimestamp;
+          if (typeof userDataUpdates.lastReviewed === "string") {
+            // If it's a string, convert it to a Date object first
+            const userLastReviewedDate = new Date(userDataUpdates.lastReviewed);
+            lastReviewedTimestamp = Timestamp.fromDate(userLastReviewedDate);
+          } else {
+            // Assume it's already a Timestamp
+            lastReviewedTimestamp = userDataUpdates.lastReviewed;
           }
 
-          if (hasFlashcardUpdates) {
-            // Update relevant deck documents with changes to flashcard data
+          batch.update(userRef, {
+            cardsReviewed: userDataUpdates.cardsReviewed,
+            reviewStreak: userDataUpdates.reviewStreak,
+            lastReviewed: lastReviewedTimestamp,
+            streakLostAcknowledged: userDataUpdates.streakLostAcknowledged,
+          });
 
-            // Convert ISO strings of flashcards lastReviewed property
-            const updatedFlashcardUpdates =
-              convertLastReviewedToTimestamp(flashcardUpdates);
-            console.log(
-              "flashcard updates to happen: ",
-              updatedFlashcardUpdates
-            );
+          // Update relevant deck documents with changes to flashcard data
+          // Convert ISO strings of flashcards lastReviewed property
+          const updatedFlashcardUpdates =
+            convertLastReviewedToTimestamp(flashcardUpdates);
 
-            for (const [deckId, updates] of Object.entries(
-              updatedFlashcardUpdates
-            )) {
-              const deckRef = doc(db, "users", user.uid, "decks", deckId);
-              const deckSnap = await getDoc(deckRef);
+          for (const [deckId, updates] of Object.entries(
+            updatedFlashcardUpdates
+          )) {
+            const deckRef = doc(db, "users", user.uid, "decks", deckId);
+            const deckSnap = await getDoc(deckRef);
 
-              if (deckSnap.exists()) {
-                const deckData = deckSnap.data();
-                // Clone the existing flashcards array from the snapshot data
-                let updatedFlashcards = [...deckData.flashcards];
+            if (deckSnap.exists()) {
+              const deckData = deckSnap.data();
+              // Clone the existing flashcards array from the snapshot data
+              let updatedFlashcards = [...deckData.flashcards];
 
-                console.log(
-                  "Updated flashcards IDs:",
-                  updatedFlashcards.map((f) => f.id)
+              // Update each flashcard in the cloned array based on the pending updates
+              for (const [flashcardId, updateData] of Object.entries(updates)) {
+                const index = updatedFlashcards.findIndex(
+                  (f) => f.id === flashcardId
                 );
-                console.log("Update data IDs:", Object.keys(updates));
 
-                // Update each flashcard in the cloned array based on the pending updates
-                for (const [flashcardId, updateData] of Object.entries(
-                  updates
-                )) {
-                  const index = updatedFlashcards.findIndex(
-                    (f) => f.id === flashcardId
-                  );
-
-                  if (index !== -1) {
-                    updatedFlashcards[index] = {
-                      ...updatedFlashcards[index],
-                      ...updateData,
-                    };
-                  }
+                if (index !== -1) {
+                  updatedFlashcards[index] = {
+                    ...updatedFlashcards[index],
+                    ...updateData,
+                  };
                 }
-
-                // Set the updated array back to the deck document
-                batch.update(deckRef, { flashcards: updatedFlashcards });
               }
+
+              // Set the updated array back to the deck document
+              batch.update(deckRef, { flashcards: updatedFlashcards });
             }
           }
 
           // Commit the batch
-          try {
-            await batch.commit();
-            console.log("Batch commit successful");
-          } catch (error) {
-            console.error("Batch commit failed:", error);
-          }
+          batch.commit();
 
           // Clear the ref
           pendingUpdatesRef.current = {};
@@ -358,6 +342,42 @@ export const UserProvider = ({ children }) => {
           }, 3000);
           return { success: false, error: error.message }; // Indicate failure and include error message
         }
+      } else if (hasStreakOrUserDataUpdates) {
+        console.log(
+          "Only user data needs updating due to streak reset, updating firebase..."
+        );
+
+        // Prepare data for Firestore, converting dates if necessary
+        const preparedUpdates = {
+          ...userDataUpdates,
+        };
+
+        // If lastReviewed is provided and it's a string, convert to Firestore Timestamp
+        if (typeof userDataUpdates.lastReviewed === "string") {
+          preparedUpdates.lastReviewed = Timestamp.fromDate(
+            new Date(userDataUpdates.lastReviewed)
+          );
+        }
+
+        // Perform the update in Firestore
+        await updateDoc(userRef, preparedUpdates);
+
+        // Update local state to reflect these changes
+        setUserData((prevUserData) => ({
+          ...prevUserData,
+          ...userDataUpdates,
+        }));
+
+        // setDataSyncMessage
+        setDataSyncMessage({
+          success: true,
+          message: "Sync successful",
+        });
+        setTimeout(() => {
+          setDataSyncMessage({});
+        }, 3000);
+
+        return { success: true };
       } else {
         console.log("No updates to perform");
         return { success: true };
@@ -370,6 +390,7 @@ export const UserProvider = ({ children }) => {
   useEffect(() => {
     const executeUpdate = () => {
       if (typeof handleFirebaseUpdateRef.current === "function") {
+        console.log("updating from 90s timer");
         handleFirebaseUpdateRef.current();
       } else {
         console.warn("handleFirebaseUpdate is not a function");
