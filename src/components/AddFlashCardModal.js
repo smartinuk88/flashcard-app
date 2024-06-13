@@ -50,6 +50,8 @@ function AddFlashCardModal({ deck, onToggleFlashcardModal }) {
               Card Front
             </label>
             <input
+              id="card-front"
+              name="card-front"
               className="w-full inline-block outline-none shadow-sm p-2 rounded-md"
               required
               type="text"
@@ -63,6 +65,8 @@ function AddFlashCardModal({ deck, onToggleFlashcardModal }) {
               Card Back
             </label>
             <input
+              id="card-back"
+              name="card-back"
               className="w-full inline-block outline-none border border-one p-2 rounded-lg"
               required
               type="text"
