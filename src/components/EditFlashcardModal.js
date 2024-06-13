@@ -47,6 +47,8 @@ function EditFlashcardModal({ deck, onToggleFlashcardModal, flashcard }) {
               Card Front
             </label>
             <input
+              id="card-front"
+              name="card-front"
               className="w-full inline-block outline-none p-2 shadow-sm rounded-md"
               required
               type="text"
@@ -59,6 +61,8 @@ function EditFlashcardModal({ deck, onToggleFlashcardModal, flashcard }) {
               Card Back
             </label>
             <input
+              id="card-back"
+              name="card-back"
               className="w-full inline-block outline-none shadow-sm p-2 rounded-md"
               required
               type="text"
