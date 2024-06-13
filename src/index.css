@@ -38,3 +38,7 @@ code {
 .flip-card-back {
   transform: rotateY(180deg);
 }
+
+.break-long-words {
+  word-break: break-all;
+}

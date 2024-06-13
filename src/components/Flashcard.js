@@ -110,8 +110,6 @@ function Flashcard({ flashcard, onNext, deckId, color, isNextCard = false }) {
         return deck;
       });
 
-      console.log("Updated deck data: ", updatedDeckData);
-
       // Update pendingFlashcardUpdate state
       const updatedFlashcardUpdates = {
         ...pendingFlashcardUpdates,
@@ -173,14 +171,18 @@ function Flashcard({ flashcard, onNext, deckId, color, isNextCard = false }) {
         <div
           className={`flip-card-front rounded-md flex items-center justify-center w-[100%] h-[100%] bg-${color}`}
         >
-          <p className="text-xl font-semibold p-4">{flashcard.front}</p>
+          <p className="text-xl font-semibold p-4 break-words break-long-words">
+            {flashcard.front}
+          </p>
         </div>
 
         {/* Back face of the card */}
         <div
           className={`flip-card-back rounded-md flex items-center justify-center w-[100%] h-[100%] bg-${color}`}
         >
-          <p className="text-xl font-semibold p-4">{flashcard.back}</p>
+          <p className="text-xl font-semibold p-4 break-words">
+            {flashcard.back}
+          </p>
 
           {!isNextCard && (
             <div className="absolute bottom-0 w-full flex justify-between p-4">

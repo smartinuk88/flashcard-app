@@ -3,13 +3,11 @@ import Header from "../components/Header";
 import Flashcard from "../components/Flashcard";
 import Footer from "../components/Footer";
 import AddFlashCardModal from "../components/AddFlashCardModal";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import DeckEditButtons from "../components/DeckEditButtons";
 import EditFlashcardModal from "../components/EditFlashcardModal";
 import DeleteFlashcardModal from "../components/DeleteFlashcardModal";
 import { useUser } from "../helpers/Context";
-import { doc, onSnapshot } from "firebase/firestore";
-import { db } from "../firebase-config";
 
 function DeckDash() {
   const { state: deck } = useLocation();
@@ -20,10 +18,6 @@ function DeckDash() {
   const [deleteFlashcardModal, setDeleteFlashcardModal] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const colors = ["one", "two", "three"];
-
-  useEffect(() => {
-    console.log("Updated userDeckData:", userDeckData);
-  }, [userDeckData]);
 
   const currentDeck = userDeckData.find((d) => d.id === deck.id);
 
@@ -42,10 +36,10 @@ function DeckDash() {
       <Header />
       <main className="flex flex-col justify-between items-center h-[calc(100vh-104px)] p-8">
         <div className="w-full">
-          <h1 className="text-center text-dark line-clamp-2 overflow-hidden text-2xl md:text-4xl font-bold mb-1">
+          <h1 className="text-center text-dark line-clamp-2 overflow-hidden text-2xl md:text-4xl font-bold mb-1 break-words">
             {currentDeck.title}
           </h1>
-          <p className="text-center text-dark line-clamp-2 overflow-hidden text-sm md:text-lg">
+          <p className="text-center text-dark line-clamp-2 overflow-hidden text-sm md:text-lg break-words">
             {currentDeck.description}
           </p>
         </div>
