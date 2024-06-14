@@ -31,9 +31,9 @@ function DeckDash() {
   if (loading || !authUser || !userData) return null;
 
   return (
-    <>
+    <div className="flex flex-col min-h-screen">
       <Header />
-      <main className="flex flex-col justify-between items-center h-[calc(100vh-104px)] p-5 sm:p-8">
+      <main className="flex-grow flex flex-col justify-between items-center h-[calc(100vh-104px)] p-5 sm:p-8">
         <div className="w-full">
           <h1 className="text-center text-dark line-clamp-2 overflow-hidden text-lg sm:text-2xl md:text-4xl font-bold mb-1 break-words">
             {currentDeck.title}
@@ -134,7 +134,7 @@ function DeckDash() {
         </div>
       </main>
       <Footer />
-    </>
+    </div>
   );
 }
 

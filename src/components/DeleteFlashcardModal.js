@@ -26,7 +26,7 @@ function DeleteFlashcardModal({ deck, onToggleFlashcardModal, flashcard }) {
 
   return (
     <div className="fixed inset-0 bg-white flex w-full justify-center items-center z-50">
-      <div className="text-center flex flex-col justify-center space-y-10 items-center bg-one p-10 h-4/5 rounded-lg shadow-lg w-4/5">
+      <div className="text-center flex flex-col justify-center space-y-10 items-center bg-one p-5 sm:p-10 h-4/5 rounded-lg shadow-lg w-4/5">
         <div>
           <h2 className="text-2xl font-bold mb-4 text-white">
             Delete Flashcard

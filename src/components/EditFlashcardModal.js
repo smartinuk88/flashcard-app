@@ -38,7 +38,7 @@ function EditFlashcardModal({ deck, onToggleFlashcardModal, flashcard }) {
 
   return (
     <div className="fixed inset-0 bg-white flex w-full justify-center items-center z-50">
-      <div className="text-center bg-one p-10 h-4/5 rounded-lg shadow-lg w-4/5">
+      <div className="text-center bg-one p-5 sm:p-10 h-4/5 rounded-lg shadow-lg w-4/5">
         <h2 className="text-2xl font-bold mb-4 text-white">Edit Flashcard</h2>
 
         <form>
