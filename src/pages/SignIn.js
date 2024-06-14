@@ -21,8 +21,8 @@ function SignIn() {
         className="p-4 flex justify-center font-semibold items-center rounded-md bg-dark text-white w-3/5 lg:w-2/5 shadow-sm hover:shadow-md hover:opacity-95 transition duration-75"
         onClick={onGoogleSignInClick}
       >
-        <FontAwesomeIcon icon={faGoogle} className="text-3xl mr-5" /> Sign in
-        with Google
+        <FontAwesomeIcon icon={faGoogle} className="text-xl text-3xl mr-5" />{" "}
+        Sign in with Google
       </button>
     </div>
   );

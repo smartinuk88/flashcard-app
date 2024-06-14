@@ -33,12 +33,12 @@ function DeckDash() {
   return (
     <>
       <Header />
-      <main className="flex flex-col justify-between items-center h-[calc(100vh-104px)] p-8">
+      <main className="flex flex-col justify-between items-center h-[calc(100vh-104px)] p-5 sm:p-8">
         <div className="w-full">
-          <h1 className="text-center text-dark line-clamp-2 overflow-hidden text-2xl md:text-4xl font-bold mb-1 break-words">
+          <h1 className="text-center text-dark line-clamp-2 overflow-hidden text-lg sm:text-2xl md:text-4xl font-bold mb-1 break-words">
             {currentDeck.title}
           </h1>
-          <p className="text-center text-dark line-clamp-2 overflow-hidden text-sm md:text-lg break-words">
+          <p className="text-center text-dark line-clamp-2 overflow-hidden text-xs sm:text-sm md:text-lg break-words">
             {currentDeck.description}
           </p>
         </div>
@@ -70,14 +70,14 @@ function DeckDash() {
         <div className="relative flex flex-col items-center">
           {/* No flashcards in deck condition */}
           {currentDeck.flashcards.length === 0 && (
-            <div className="relative flex flex-col justify-center items-center mb-4 border border-one w-72 h-96 rounded-lg shadow-md text-2xl font-semibold text-center">
+            <div className="relative flex flex-col justify-center items-center mb-4 border border-one w-64 h-96 sm:w-72 rounded-lg shadow-md text-2xl font-semibold text-center">
               <p>No flashcards added</p>
             </div>
           )}
 
           {/* Review Session Finished Condition */}
           {currentIndex === -1 && currentDeck.flashcards.length > 0 && (
-            <div className="relative flex flex-col justify-between items-center mb-4 bg-one text-white w-72 h-96 rounded-lg shadow-md text-xl font-semibold text-center py-8">
+            <div className="relative flex flex-col justify-between items-center mb-4 bg-one text-white w-64 h-96 sm:w-72 rounded-lg shadow-md text-xl font-semibold text-center py-8">
               <p>Review Session Finished!</p>
               <div className="flex flex-col">
                 <button

@@ -325,7 +325,7 @@ export const UserProvider = ({ children }) => {
           // setDataSyncMessage
           setDataSyncMessage({
             success: true,
-            message: "Sync successful",
+            message: "Sync success",
           });
           setTimeout(() => {
             setDataSyncMessage({});
@@ -335,7 +335,7 @@ export const UserProvider = ({ children }) => {
           console.error("Error updating user session data:", error);
           setDataSyncMessage({
             success: false,
-            message: `Sync error: ${error.message}`,
+            message: `Sync error`,
           });
           setTimeout(() => {
             setDataSyncMessage({});

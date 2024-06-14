@@ -17,7 +17,7 @@ function Header() {
     <header className="sticky w-full h-14 pt-1 bg-white">
       <div className="flex justify-between items-center px-6">
         <Link to={"/"}>
-          <p className="text-3xl">
+          <p className="text-xl sm:text-3xl">
             Flash<span className="font-bold text-one">Fluent</span>
           </p>
         </Link>
@@ -45,7 +45,7 @@ function Header() {
             {userData.reviewStreak}
           </p>
           <button
-            className="font-bold border text-sm md:text-base bg-dark hover:opacity-90 text-white shadow-sm rounded-md py-1 px-4"
+            className="font-bold border text-xs sm:text-sm md:text-base bg-dark hover:opacity-90 text-white shadow-sm rounded-md py-1 px-2 sm:px-4"
             onClick={handleSignOut}
           >
             Sign Out

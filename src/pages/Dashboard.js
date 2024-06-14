@@ -11,7 +11,7 @@ function Dashboard() {
   return (
     <div>
       <Header />
-      <main className="mx-auto px-10 max-w-7xl h-full mt-2 mb-11">
+      <main className="mx-auto px-5 sm:px-10 max-w-7xl h-full mt-1 sm:mt-2 mb-8 sm:mb-11">
         <UserStats />
         <DeckList />
       </main>

@@ -17,23 +17,23 @@ function UserStats() {
     : "User";
 
   return (
-    <div className="grid md:grid-cols-5 items-start w-full shadow-md mb-20 overflow-hidden">
-      <div className="md:col-span-3 bg-one md:h-full p-10 max-w-full">
-        <p className="text-2xl">Keep it up,</p>
-        <p className="text-6xl lg:text-8xl font-extrabold text-white break-words">
+    <div className="grid md:grid-cols-5 items-start w-full shadow-md mb-10 sm:mb-20 overflow-hidden">
+      <div className="md:col-span-3 bg-one md:h-full p-5 sm:p-10 max-w-full">
+        <p className="text-lg sm:text-2xl">Keep it up,</p>
+        <p className="text-4xl sm:text-6xl lg:text-8xl font-extrabold text-white break-words">
           {firstName}
         </p>
       </div>
-      <div className="md:col-span-2 space-x-8 md:space-x-0 flex items-center justify-between md:flex-col md:items-start md:justify-center p-10 md:space-y-8 bg-white h-full border border-one">
+      <div className="md:col-span-2 space-x-8 md:space-x-0 flex items-center justify-start md:flex-col md:items-start md:justify-center p-5 sm:p-10 md:space-y-8 bg-white h-full border border-one">
         <div className="flex items-center space-x-1">
-          <p className="text-lg md:text-xl">Current Streak: </p>
+          <p className="sm:text-lg md:text-xl">Current Streak: </p>
           <p className="text-one text-4xl md:text-5xl font-bold">
             {userData.reviewStreak}
           </p>
         </div>
 
-        <div className="flex items-center space-x-2">
-          <p className="text-lg md:text-xl">Total Cards Reviewed: </p>
+        <div className="flex items-center space-x-1">
+          <p className="sm:text-lg md:text-xl">Total Cards Reviewed: </p>
           <p className="text-one text-4xl md:text-5xl font-bold">
             {userData.cardsReviewed}
           </p>

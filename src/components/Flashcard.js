@@ -156,7 +156,7 @@ function Flashcard({ flashcard, onNext, deckId, color, isNextCard = false }) {
   return (
     <div
       onClick={handleFlip}
-      className={`flip-card flex flex-col justify-center items-center mb-4 w-72 h-96 rounded-md cursor-pointer text-2xl text-white font-semibold text-center ${
+      className={`flip-card flex flex-col justify-center items-center mb-4 w-64 h-96 sm:w-72 rounded-md cursor-pointer text-2xl text-white font-semibold text-center ${
         isNextCard ? `z-0 absolute top-2 right-1` : `z-10 relative`
       }`}
     >
