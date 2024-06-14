@@ -11,8 +11,7 @@ import { useUser } from "../helpers/Context";
 
 function DeckDash() {
   const { state: deck } = useLocation();
-  const { loading, authUser, userData, userDeckData, setUserDeckData } =
-    useUser();
+  const { loading, authUser, userData, userDeckData } = useUser();
   const [addFlashcardModal, setAddFlashcardModal] = useState(false);
   const [editFlashcardModal, setEditFlashcardModal] = useState(false);
   const [deleteFlashcardModal, setDeleteFlashcardModal] = useState(false);

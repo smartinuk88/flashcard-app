@@ -15,7 +15,10 @@ function PrivateRoute({ children }) {
     );
   }
 
-  if (!authUser) {
+  // Check if authUser is not present or is an empty object
+  const isAuthenticated = authUser && Object.keys(authUser).length > 0;
+
+  if (!isAuthenticated) {
     // Redirect to the signin page if not authenticated
     return <Navigate to="/signin" replace />;
   }
