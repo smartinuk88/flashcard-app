@@ -31,7 +31,7 @@ function DeckDash() {
   if (loading || !authUser || !userData) return null;
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen max-h-screen">
       <Header />
       <main className="flex-grow flex flex-col justify-between items-center p-5 sm:p-8">
         <div className="w-full">
