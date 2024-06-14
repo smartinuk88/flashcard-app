@@ -10,7 +10,7 @@ function Deck({ deck }) {
 
   return (
     <div
-      className={`relative bg-${deck.bgColor} rounded-md aspect-square p-4 h-48 sm:h-52 w-full min-h-max hover:opacity-90 transition duration-100`}
+      className={`relative bg-${deck.bgColor} rounded-md p-4 h-48 sm:h-52 w-full min-h-max hover:opacity-90 transition duration-100`}
     >
       {showModal ? (
         <>

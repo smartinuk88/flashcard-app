@@ -6,10 +6,10 @@ function DeckList() {
   const { userDeckData } = useUser();
 
   return (
-    <div>
+    <div className="w-full">
       <AddDeck />
 
-      <div className="w-full grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="w-full grid sm:grid-cols-2  md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
         {userDeckData &&
           userDeckData.map((deck) => <Deck key={deck.id} deck={deck} />)}
       </div>
